@@ -1,0 +1,33 @@
+body, html {
+    background-color: #0B1F3A;
+    margin: 0;
+    padding: 0;
+}
+ 
+.navbar {
+    background-color: #0B1F3A;
+}
+ 
+.navbar-brand {
+    color: #D4AF37 !important;
+    font-weight: bold;
+    font-size: 22px;
+}
+ 
+.nav-link {
+    color: white !important;
+}
+ 
+.nav-link:hover {
+    color: #D4AF37 !important;
+}
+ 
+.btn-custom {
+    background-color: #D4AF37;
+    color: black;
+}
+.main-logo {
+    height: 100px;
+    object-fit: contain;
+}
+ 
