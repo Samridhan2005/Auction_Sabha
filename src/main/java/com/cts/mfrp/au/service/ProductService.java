@@ -1,4 +1,4 @@
-package com.cts.service;
+package com.cts.mfrp.au.service;
 
 public class ProductService {
 }

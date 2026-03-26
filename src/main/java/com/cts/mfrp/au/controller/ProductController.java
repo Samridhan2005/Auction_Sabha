@@ -1,4 +1,4 @@
-package com.cts.controller;
+package com.cts.mfrp.au.controller;
 
 public class ProductController {
 }
