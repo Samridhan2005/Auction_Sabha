@@ -1,4 +1,9 @@
-package com.cts.mfrp.au.model;
-
+@Entity
+@Table(name = "categories")
+@Data
 public class Category {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int categoryId;
+    private String categoryName;
 }
