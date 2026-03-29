@@ -1,4 +1,4 @@
-package com.cts.mfrp.au.AuctionSabha;
+package com.cts.mfrp.au;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
