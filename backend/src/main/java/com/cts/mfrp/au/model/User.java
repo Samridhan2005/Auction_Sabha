@@ -19,4 +19,12 @@ public class User {
     private String password;
     private String phone;
     private String role;
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getRole() {
+        return role;
+    }
 }
