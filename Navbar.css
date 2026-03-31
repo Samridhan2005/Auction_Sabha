@@ -31,3 +31,18 @@ body, html {
     object-fit: contain;
 }
  
+/* HERO SECTION */
+.hero {
+    background: url('images/bg.jpg') no-repeat center center/cover;
+}
+ 
+/* DARK OVERLAY */
+.overlay {
+    background: rgba(0, 0, 0, 0.6);
+}
+ 
+/* GOLD TEXT */
+.highlight {
+    color: #f5b942;
+}
+ 
