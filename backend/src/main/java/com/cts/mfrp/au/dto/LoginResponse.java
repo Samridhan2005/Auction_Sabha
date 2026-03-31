@@ -5,18 +5,17 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor // Default constructor kaga
-@AllArgsConstructor // Arguments ulla constructor kaga
+// Arguments ulla constructor kaga
 public class LoginResponse {
     private String message;
+
+
+
     private String role;
     private String token;
-
-//    public LoginResponse(String loginSuccessful, String role) {
-//    }
-//    public LoginResponse(String loginSuccessful, String role) {
-//    }
-
-    // Inga manual constructor potrundha adhai delete pannidunga.
-    // Lombok-ey adhai pathukkum.
+    public LoginResponse(String message, String role, String token) {
+        this.message = message;
+        this.role = role;
+        this.token = token;
+    }
 }
