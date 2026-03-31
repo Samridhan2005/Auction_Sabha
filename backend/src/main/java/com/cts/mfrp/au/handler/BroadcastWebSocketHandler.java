@@ -53,8 +53,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             """));
             return;
         }
-
-        // process bid safely
         broadcast(bid);
     }
 

@@ -32,12 +32,12 @@ public class AdminController {
     public ResponseEntity<String> startAuction(@PathVariable int auctionId)
             throws Exception {
 
-        Auction auction = auctionService.startAuction(auctionId);
+        auctionService.startAuction(auctionId);
 
         // Notify all clients
         broadcastWebSocketHandler.broadcastSystemEvent(
                 "AUCTION_STARTED",
-                auction.getAuctionId()
+                auctionId
         );
 
         return ResponseEntity.ok("Auction started");
@@ -47,11 +47,11 @@ public class AdminController {
     public ResponseEntity<String> stopAuction(@PathVariable int auctionId)
             throws Exception {
 
-        Auction auction = auctionService.stopAuction(auctionId);
+        auctionService.stopAuction(auctionId);
 
         broadcastWebSocketHandler.broadcastSystemEvent(
                 "AUCTION_STOPPED",
-                auction.getAuctionId()
+                auctionId
         );
 
         return ResponseEntity.ok("Auction stopped");

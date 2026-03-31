@@ -17,7 +17,7 @@ public class AuctionService {
     }
 
 
-    public Auction startAuction(int auctionId) {
+    public void startAuction(int auctionId) {
 
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found"));
@@ -29,10 +29,10 @@ public class AuctionService {
         auction.setStatus("LIVE");
         auction.setStartTime(LocalDateTime.now());
 
-        return auctionRepository.save(auction);
+        auctionRepository.save(auction);
     }
 
-    public Auction stopAuction(int auctionId) {
+    public void stopAuction(int auctionId) {
 
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found"));
@@ -44,10 +44,11 @@ public class AuctionService {
         auction.setStatus("CLOSED");
         auction.setEndTime(LocalDateTime.now());
 
-        return auctionRepository.save(auction);
+        auctionRepository.save(auction);
     }
 
     public boolean isAuctionLive(Auction auction) {
+
         return "LIVE".equals(auction.getStatus());
     }
 
