@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.Query;
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-
     // 1. Browse by category (AUC-7)
     List<Product> findByCategory_CategoryIdAndVerificationStatus(int categoryId, String status);
 
