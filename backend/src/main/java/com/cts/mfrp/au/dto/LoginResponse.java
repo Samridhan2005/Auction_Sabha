@@ -10,9 +10,10 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
     private String message;
     private String role;
+    private String token;
 
-    public LoginResponse(String loginSuccessful, String role) {
-    }
+//    public LoginResponse(String loginSuccessful, String role) {
+//    }
 //    public LoginResponse(String loginSuccessful, String role) {
 //    }
 
