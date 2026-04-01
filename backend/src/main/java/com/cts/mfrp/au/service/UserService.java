@@ -12,16 +12,10 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public User login(String email,String password){
-        User user = userRepository.findByEmail(email);
-        if(user!=null && user.getPassword().equals(password)){
-            return user;
-        }
-        return null;
-    }
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     public User registerUser(RegisterRequest request) {
-        // Check if email already exists
         if (userRepository.findByEmail(request.getEmail()) != null) {
             throw new RuntimeException("Email already registered!");
         }
@@ -29,11 +23,22 @@ public class UserService {
         User newUser = new User();
         newUser.setName(request.getName());
         newUser.setEmail(request.getEmail());
-        newUser.setPassword(request.getPassword()); // Later: add password encoding
+
+        // PASSWORD HASHING HERE
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+
         newUser.setRole(request.getRole().toUpperCase());
         newUser.setPhone(request.getPhone());
 
         return userRepository.save(newUser);
+    }
+
+    public User login(String email, String password) {
+        User user = userRepository.findByEmail(email);
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            return user;
+        }
+        return null;
     }
 
 

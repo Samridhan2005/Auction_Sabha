@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-// Arguments ulla constructor kaga
 public class LoginResponse {
     private String message;
 
