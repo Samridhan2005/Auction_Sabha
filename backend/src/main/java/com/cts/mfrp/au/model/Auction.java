@@ -28,4 +28,20 @@ public class Auction {
     private java.time.LocalDateTime endTime;
     private String status;
     private boolean isFeatured;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getAuctionId() {
+        return auctionId;
+    }
+
+    public void setAuctionId(int auctionId) {
+        this.auctionId = auctionId;
+    }
 }

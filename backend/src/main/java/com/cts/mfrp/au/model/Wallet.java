@@ -1,24 +1,35 @@
 package com.cts.mfrp.au.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.*;
-import jakarta.persistence.Table;
-import lombok.Data;
+import java.util.Date;
 
 @Entity
 @Table(name = "wallets")
-@Data
 public class Wallet {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int walletId;
 
-    @OneToOne
-    @JoinColumn(name = "user_id", unique = true)
-    private User user;
+    private int userId;
+    private float availableBalance;
+    private float frozenBalance;
 
-    private float availableBalance = 0.0f;
-    private float frozenBalance = 0.0f;
-    private java.time.LocalDateTime lastUpdated;
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date lastUpdated;
+
+    // Getters and Setters
+    public int getWalletId() { return walletId; }
+    public void setWalletId(int walletId) { this.walletId = walletId; }
+
+    public int getUserId() { return userId; }
+    public void setUserId(int userId) { this.userId = userId; }
+
+    public float getAvailableBalance() { return availableBalance; }
+    public void setAvailableBalance(float availableBalance) { this.availableBalance = availableBalance; }
+
+    public float getFrozenBalance() { return frozenBalance; }
+    public void setFrozenBalance(float frozenBalance) { this.frozenBalance = frozenBalance; }
+
+    public Date getLastUpdated() { return lastUpdated; }
+    public void setLastUpdated(Date lastUpdated) { this.lastUpdated = lastUpdated; }
 }
