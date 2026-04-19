@@ -29,8 +29,7 @@ public class AdminController {
 
 
     @PostMapping("/{auctionId}/start")
-    public ResponseEntity<String> startAuction(@PathVariable int auctionId)
-            throws Exception {
+    public ResponseEntity<String> startAuction(@PathVariable int auctionId) throws Exception {
 
         Auction auction = auctionService.startAuction(auctionId);
 

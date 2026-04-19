@@ -12,7 +12,7 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    // AS-PV-03: Verifier Approve/Reject logic
+    //Verifier Approve/Reject logic
     public Product reviewProduct(int id, String status, String remarks) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
@@ -21,11 +21,9 @@ public class ProductService {
         return productRepository.save(product);
     }
 
-    // Buyer Bidding Logic (Validation only)
     public String validateAndPlaceBid(int id, float bidAmount) {
         Product product = productRepository.findById(id).orElseThrow();
 
-        // Validation: Bid must be higher than starting price
         if (bidAmount <= product.getStartingPrice()) {
             return "Error: Bid must be higher than the price: " + product.getStartingPrice();
         }
@@ -35,7 +33,12 @@ public class ProductService {
         return "Success: Bid placed successfully!";
     }
 
-    // Browse & Search methods
+    public Product saveProduct(Product product) {
+        product.setVerificationStatus("PENDING");
+        product.setSubmittedAt(java.time.LocalDateTime.now());
+        return productRepository.save(product);
+    }
+
     public List<Product> getByCategory(int catId) { return productRepository.findByCategory_CategoryIdAndVerificationStatus(catId, "APPROVED"); }
     public List<Product> searchProducts(String name) { return productRepository.findByProductNameContainingIgnoreCaseAndVerificationStatus(name, "APPROVED"); }
     public List<Product> getPendingForVerifier() { return productRepository.findByVerificationStatus("PENDING"); }

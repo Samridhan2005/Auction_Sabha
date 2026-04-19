@@ -33,13 +33,14 @@ public class UserService {
         return userRepository.save(newUser);
     }
 
-    public User login(String email, String password) {
+    public User login(String email, String password, String selectedRole) {
         User user = userRepository.findByEmail(email);
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return user;
+            // Optional: Check if the user's DB role matches the dropdown selection
+            if(user.getRole().equalsIgnoreCase(selectedRole)) {
+                return user;
+            }
         }
         return null;
     }
-
-
 }

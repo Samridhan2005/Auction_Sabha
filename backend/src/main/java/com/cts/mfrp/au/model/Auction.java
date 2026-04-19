@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "auctions")
 @Data
@@ -20,11 +22,28 @@ public class Auction {
 
     private float currentBid;
 
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
     @ManyToOne
     @JoinColumn(name = "highest_bidder_id")
     private User highestBidder;
 
     private java.time.LocalDateTime startTime;
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
     private java.time.LocalDateTime endTime;
     private String status;
     private boolean isFeatured;

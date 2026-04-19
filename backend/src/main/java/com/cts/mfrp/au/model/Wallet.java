@@ -17,7 +17,6 @@ public class Wallet {
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastUpdated;
 
-    // Getters and Setters
     public int getWalletId() { return walletId; }
     public void setWalletId(int walletId) { this.walletId = walletId; }
 

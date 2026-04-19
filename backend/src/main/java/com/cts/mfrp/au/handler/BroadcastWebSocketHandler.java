@@ -27,13 +27,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Connected: " + session.getId());
     }
 
-//    @Override
-//    protected void handleTextMessage(WebSocketSession session, TextMessage message)throws Exception {
-//        BidExt bidExt = objectMapper.readValue(message.getPayload(), BidExt.class);
-//        System.out.println("Received employee: " + bidExt.getBidderId());
-//        broadcast(bidExt);
-//    }
-
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message)
             throws Exception {

@@ -35,7 +35,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 String email = jwtUtil.extractEmail(token);
                 String role = (String) jwtUtil.extractClaims(token).get("role");
 
-                // IMPORTANT: Intha logic thaa 403-ah 200-aa mathum
                 if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             email, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
@@ -43,7 +42,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // Spring Security-kitta "Ivane kuttunnu" solliduvom
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }

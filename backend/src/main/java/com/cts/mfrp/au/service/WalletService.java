@@ -19,13 +19,13 @@ public class WalletService {
         this.transactionRepo = transactionRepo;
     }
 
-    // AUC-23: View Balance
+    // View Balance
     public Wallet getBalance(int userId) {
         return walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
     }
 
-    // AUC-24: Deposit Funds
+    // Deposit Funds
     public Wallet depositFunds(int userId, float amount) {
         Wallet wallet = walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
@@ -45,7 +45,7 @@ public class WalletService {
         return wallet;
     }
 
-    // AUC-25: Withdraw Funds
+    // Withdraw Funds
     public Wallet withdrawFunds(int userId, float amount) {
         Wallet wallet = walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
@@ -69,7 +69,7 @@ public class WalletService {
         return wallet;
     }
 
-    // AUC-26: Hold Bid Amount
+    // Hold Bid Amount
     public Wallet holdBidAmount(int userId, int auctionId, float bidAmount) {
         Wallet wallet = walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
@@ -95,7 +95,7 @@ public class WalletService {
         return wallet;
     }
 
-    // AUC-27: Refund Losing Bidder
+    // Refund Losing Bidder
     public Wallet refundBidder(int userId, int auctionId, float refundAmount) {
         Wallet wallet = walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
@@ -121,7 +121,7 @@ public class WalletService {
         return wallet;
     }
 
-    // AUC-28: Payout Winning Seller
+    // Payout Winning Seller
     public Wallet payoutSeller(int sellerUserId, int auctionId, float payoutAmount) {
         Wallet wallet = walletRepo.findByUserId(sellerUserId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + sellerUserId));
@@ -142,7 +142,7 @@ public class WalletService {
         return wallet;
     }
 
-    // AUC-29: View Transaction History
+    // View Transaction History
     public List<Transaction> getTransactionHistory(int userId) {
         Wallet wallet = walletRepo.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));

@@ -16,7 +16,6 @@ public class AuctionService {
         this.auctionRepository = auctionRepository;
     }
 
-
     public Auction startAuction(int auctionId) {
 
         Auction auction = auctionRepository.findById(auctionId)

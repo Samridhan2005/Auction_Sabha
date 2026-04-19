@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "products")
 @Data
@@ -30,7 +32,14 @@ public class Product {
     private String adminRemarks;
     private java.time.LocalDateTime submittedAt;
 
-    // Getter and Setter for Starting Price (Fixed the error you see now)
+    public LocalDateTime getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(LocalDateTime submittedAt) {
+        this.submittedAt = submittedAt;
+    }
+
     public float getStartingPrice() {
         return startingPrice;
     }
@@ -39,7 +48,6 @@ public class Product {
         this.startingPrice = startingPrice;
     }
 
-    // Getter and Setter for Verification Status
     public String getVerificationStatus() {
         return verificationStatus;
     }
@@ -48,7 +56,6 @@ public class Product {
         this.verificationStatus = verificationStatus;
     }
 
-    // Getter and Setter for Admin Remarks
     public String getAdminRemarks() {
         return adminRemarks;
     }
@@ -57,7 +64,6 @@ public class Product {
         this.adminRemarks = adminRemarks;
     }
 
-    // Optional: Product Name and Category Getters (For Search/Filter logic)
     public String getProductName() {
         return productName;
     }
