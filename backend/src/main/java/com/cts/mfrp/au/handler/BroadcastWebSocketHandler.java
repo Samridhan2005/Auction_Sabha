@@ -1,9 +1,15 @@
 package com.cts.mfrp.au.handler;
 
 import com.cts.mfrp.au.model.Auction;
+import com.cts.mfrp.au.model.Bid;
 import com.cts.mfrp.au.model.BidExt;
-import com.cts.mfrp.au.repository.AuctionRepository;
+import com.cts.mfrp.au.service.AuctionService;
+import com.cts.mfrp.au.service.BidService;
+import com.cts.mfrp.au.service.BidTimerService;
+import com.cts.mfrp.au.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -19,15 +25,28 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     private static final Set<WebSocketSession> sessions = ConcurrentHashMap.newKeySet();
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
-    private AuctionRepository auctionRepository;
+    private UserService userService;
+    @Autowired
+    private BidTimerService bidTimerService;
+    @Autowired
+    private AuctionService auctionService;
+    @Autowired
+    private BidService bidService;
+
+
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessions.add(session);
         System.out.println("Connected: " + session.getId());
     }
 
-//    @Override
+    @Setter
+    @Getter
+    private double curBid;
+
+    //    @Override
 //    protected void handleTextMessage(WebSocketSession session, TextMessage message)throws Exception {
 //        BidExt bidExt = objectMapper.readValue(message.getPayload(), BidExt.class);
 //        System.out.println("Received employee: " + bidExt.getBidderId());
@@ -35,14 +54,10 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
 //    }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message)
-            throws Exception {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
 
-        BidExt bid =
-                objectMapper.readValue(message.getPayload(), BidExt.class);
-
-        Auction auction = auctionRepository.findById(bid.getAuctionId())
-                .orElseThrow();
+        BidExt bid = objectMapper.readValue(message.getPayload(), BidExt.class);
+        Auction auction = auctionService.findById(bid.getAuctionId());
 
         if (!"LIVE".equals(auction.getStatus())) {
             session.sendMessage(new TextMessage("""
@@ -53,7 +68,29 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             """));
             return;
         }
-        broadcast(bid);
+
+        if(curBid>=bid.getAmount()){
+            session.sendMessage(new TextMessage("""
+            {
+              "type": "ERROR",
+              "message": "Bid Amount Should be greater than current Bid."
+            }
+            """));
+            return;
+        }
+        curBid=bid.getAmount();
+//        Bid x=new Bid();
+//        x.setBidAmount((float)curBid);
+//        x.setBidder(userService.findById(bid.getBidderId()));
+//        x.setAuction(auction);
+//        bidService.insertBid(x);
+
+
+        bidTimerService.resetTimer(bid.getAuctionId());
+
+        String json = objectMapper.writeValueAsString(bid);
+        TextMessage textMessage = new TextMessage(json);
+        broadcast(textMessage);
     }
 
 
@@ -63,9 +100,8 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Disconnected: " + session.getId());
     }
 
-    private void broadcast(BidExt bidExt) throws Exception {
-        String json = objectMapper.writeValueAsString(bidExt);
-        TextMessage textMessage = new TextMessage(json);
+    private void broadcast(TextMessage textMessage) throws Exception {
+
         for (WebSocketSession s : sessions) {
             if (s.isOpen()) {
                 s.sendMessage(textMessage);
@@ -85,10 +121,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
 
         TextMessage message = new TextMessage(json);
 
-        for (WebSocketSession session : sessions) {
-            if (session.isOpen()) {
-                session.sendMessage(message);
-            }
-        }
+        broadcast(message);
     }
 }

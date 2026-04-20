@@ -7,6 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class AuctionSabhaApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(AuctionSabhaApplication.class, args);
+        SpringApplication.run(AuctionSabhaApplication.class, args);
 	}
 }

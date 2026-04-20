@@ -1,23 +1,26 @@
 package com.cts.mfrp.au.service;
 
+import com.cts.mfrp.au.handler.BroadcastWebSocketHandler;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.repository.AuctionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class AuctionService {
     @Autowired
     private AuctionRepository auctionRepository;
 
+
     public AuctionService(AuctionRepository auctionRepository) {
         this.auctionRepository = auctionRepository;
     }
 
 
-    public void startAuction(int auctionId) {
+    public void startAuction(int auctionId) throws Exception {
 
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found"));
@@ -32,7 +35,7 @@ public class AuctionService {
         auctionRepository.save(auction);
     }
 
-    public void stopAuction(int auctionId) {
+    public void stopAuction(int auctionId) throws Exception {
 
         Auction auction = auctionRepository.findById(auctionId)
                 .orElseThrow(() -> new RuntimeException("Auction not found"));
@@ -53,4 +56,14 @@ public class AuctionService {
     }
 
 
+    public double getDefaultPrice(int auctionId) {
+        Auction auction = auctionRepository.findById(auctionId)
+                .orElseThrow(() -> new RuntimeException("Auction not found"));
+        return auction.getProduct().getStartingPrice();
+    }
+
+    public Auction findById(int id){
+        Optional<Auction> op= auctionRepository.findById(id);
+        return op.orElse(null);
+    }
 }

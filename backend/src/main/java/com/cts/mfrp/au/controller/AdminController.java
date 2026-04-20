@@ -29,31 +29,21 @@ public class AdminController {
 
 
     @PostMapping("/{auctionId}/start")
-    public ResponseEntity<String> startAuction(@PathVariable int auctionId)
-            throws Exception {
+    public ResponseEntity<String> startAuction(@PathVariable int auctionId) throws Exception {
 
+
+
+        double price=auctionService.getDefaultPrice(auctionId);
+        broadcastWebSocketHandler.setCurBid(price);
         auctionService.startAuction(auctionId);
-
-        // Notify all clients
-        broadcastWebSocketHandler.broadcastSystemEvent(
-                "AUCTION_STARTED",
-                auctionId
-        );
-
+        broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STARTED",auctionId);
         return ResponseEntity.ok("Auction started");
     }
 
     @PostMapping("/{auctionId}/stop")
-    public ResponseEntity<String> stopAuction(@PathVariable int auctionId)
-            throws Exception {
-
+    public ResponseEntity<String> stopAuction(@PathVariable int auctionId) throws Exception {
         auctionService.stopAuction(auctionId);
-
-        broadcastWebSocketHandler.broadcastSystemEvent(
-                "AUCTION_STOPPED",
-                auctionId
-        );
-
+        broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STOPPED",auctionId);
         return ResponseEntity.ok("Auction stopped");
     }
 

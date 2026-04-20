@@ -37,4 +37,5 @@ public class BidExt {
     public void setAmount(float amount) {
         this.amount = amount;
     }
+
 }
