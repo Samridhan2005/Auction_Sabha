@@ -30,9 +30,6 @@ public class AdminController {
 
     @PostMapping("/{auctionId}/start")
     public ResponseEntity<String> startAuction(@PathVariable int auctionId) throws Exception {
-
-
-
         double price=auctionService.getDefaultPrice(auctionId);
         broadcastWebSocketHandler.setCurBid(price);
         auctionService.startAuction(auctionId);

@@ -19,6 +19,16 @@ public class BidTimerService {
     @Autowired
     private AuctionService auctionService;
 
+    private BroadcastWebSocketHandler broadcastWebSocketHandler;
+
+    public BroadcastWebSocketHandler getBroadcastWebSocketHandler() {
+        return broadcastWebSocketHandler;
+    }
+
+    public void setBroadcastWebSocketHandler(BroadcastWebSocketHandler broadcastWebSocketHandler) {
+        this.broadcastWebSocketHandler = broadcastWebSocketHandler;
+    }
+
     private ScheduledFuture<?> currentTimer;
 
 
@@ -31,6 +41,7 @@ public class BidTimerService {
         currentTimer = scheduler.schedule(() -> {
             try {
                 auctionService.stopAuction(auctionId);
+                broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STOPPED",auctionId);
 
             } catch (Exception e) {
                 System.out.println(e.getMessage());

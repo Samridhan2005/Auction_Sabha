@@ -5,7 +5,6 @@ import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
@@ -47,6 +46,5 @@ public class UserService {
         Optional<User> our= userRepository.findById(id);
         return our.orElse(null);
     }
-
 
 }
