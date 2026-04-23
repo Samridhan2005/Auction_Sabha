@@ -19,6 +19,9 @@ public class BidTimerService {
     @Autowired
     private AuctionService auctionService;
 
+    @Autowired
+    private WalletService walletService;
+
     private BroadcastWebSocketHandler broadcastWebSocketHandler;
 
     public BroadcastWebSocketHandler getBroadcastWebSocketHandler() {
@@ -41,6 +44,7 @@ public class BidTimerService {
         currentTimer = scheduler.schedule(() -> {
             try {
                 auctionService.stopAuction(auctionId);
+                walletService.commit(auctionId);
                 broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STOPPED",auctionId);
 
             } catch (Exception e) {

@@ -1,5 +1,9 @@
 package com.cts.mfrp.au.handler;
 
+import com.cts.mfrp.au.exception.AuctionIllegalStateException;
+import com.cts.mfrp.au.exception.AuctionNotFoundException;
+import com.cts.mfrp.au.exception.LowBidException;
+import com.cts.mfrp.au.exception.UserNotFoundException;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.model.Bid;
 import com.cts.mfrp.au.model.BidExt;
@@ -32,13 +36,12 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     private AuctionService auctionService;
     @Autowired
     private BidService bidService;
-    @Autowired private WalletService walletService;
+    @Autowired
+    private WalletService walletService;
     @Setter
     @Getter
     private float curBid;
     private int prevUserId;
-
-
 
 
     @Override
@@ -46,7 +49,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         sessions.add(session);
         System.out.println("Connected: " + session.getId());
     }
-
 
 
     //    @Override
@@ -58,82 +60,42 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        try{
+            BidExt bid = objectMapper.readValue(message.getPayload(), BidExt.class);
+            Auction auction = auctionService.findById(bid.getAuctionId());
+            User u = userService.findById(bid.getBidderId());
+            if (u == null) throw new UserNotFoundException("Not a valid user.");
+            if(auction==null) throw new AuctionNotFoundException("Auction not found.");
+            if (!"LIVE".equals(auction.getStatus())) throw new AuctionIllegalStateException("Auction is not live.");
+            if (walletService.getBalance(bid.getBidderId()).getAvailableBalance() < bid.getAmount()) throw new LowBidException("Bid Amount Should not be greater than your wallet balance.");
+            if (curBid >= bid.getAmount()) throw new LowBidException("Bid Amount Should be greater than current Bid.");
 
-        BidExt bid = objectMapper.readValue(message.getPayload(), BidExt.class);
-        Auction auction = auctionService.findById(bid.getAuctionId());
-
-        User u=userService.findById(bid.getBidderId());
-
-        if(u==null){
-            session.sendMessage(new TextMessage("""
-            {
-              "type": "ERROR",
-              "message": "Not a valid user."
+            if (prevUserId != 0) {
+                walletService.unfreezeBal(prevUserId, curBid);
+                walletService.freezeBal(bid.getBidderId(), bid.getAmount());
             }
-            """));
-            return;
+            auctionService.setHighestBidder(auction.getAuctionId(), u);
+            curBid = bid.getAmount();
+            Bid x = new Bid();
+            x.setBidAmount(curBid);
+            x.setBidder(userService.findById(bid.getBidderId()));
+            x.setAuction(auction);
+            bidService.insertBid(x);
+
+            bidTimerService.resetTimer(bid.getAuctionId());
+
+            String json = objectMapper.writeValueAsString(bid);
+            TextMessage textMessage = new TextMessage(json);
+            broadcast(textMessage);
+            prevUserId = bid.getBidderId();
         }
-
-        if (auction==null) {
-            session.sendMessage(new TextMessage("""
-            {
-              "type": "ERROR",
-              "message": "Auction not found."
-            }
-            """));
-            return;
+        catch (RuntimeException ex) {
+            System.out.println(ex.getMessage());
         }
-
-        if (!"LIVE".equals(auction.getStatus())) {
-            session.sendMessage(new TextMessage("""
-            {
-              "type": "ERROR",
-              "message": "Auction is not live."
-            }
-            """));
-            return;
+        catch (Exception ex){
+            sendError(session, ex.getMessage());
         }
-
-        if(walletService.getBalance(bid.getBidderId()).getAvailableBalance()<bid.getAmount()){
-            session.sendMessage(new TextMessage("""
-            {
-              "type": "ERROR",
-              "message": "Bid Amount Should not be greater than your wallet balance."
-            }
-            """));
-            return;
-        }
-
-        if(curBid>=bid.getAmount()){
-            session.sendMessage(new TextMessage("""
-            {
-              "type": "ERROR",
-              "message": "Bid Amount Should be greater than current Bid."
-            }
-            """));
-            return;
-        }
-        if(prevUserId!=0){
-            walletService.unfreezeBal(prevUserId,curBid);
-            walletService.freezeBal(bid.getBidderId(),bid.getAmount());
-        }
-        auctionService.setHighestBidder(auction.getAuctionId(), u);
-        curBid=bid.getAmount();
-        Bid x=new Bid();
-        x.setBidAmount(curBid);
-        x.setBidder(userService.findById(bid.getBidderId()));
-        x.setAuction(auction);
-        bidService.insertBid(x);
-
-
-        bidTimerService.resetTimer(bid.getAuctionId());
-
-        String json = objectMapper.writeValueAsString(bid);
-        TextMessage textMessage = new TextMessage(json);
-        broadcast(textMessage);
-        prevUserId=bid.getBidderId();
     }
-
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
@@ -153,15 +115,30 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     public void broadcastSystemEvent(String type, int auctionId) throws Exception {
 
         String json = """
-        {
-          "type": "%s",
-          "auctionId": %d,
-          "timestamp": "%s"
-        }
-        """.formatted(type, auctionId, Instant.now());
+                {
+                  "type": "%s",
+                  "auctionId": %d,
+                  "timestamp": "%s"
+                }
+                """.formatted(type, auctionId, Instant.now());
 
         TextMessage message = new TextMessage(json);
 
         broadcast(message);
+    }
+
+
+    private void sendError(WebSocketSession session, String message) throws Exception {
+
+        String json = """
+                {
+                  "type": "ERROR",
+                  "message": "%s",
+                  "timestamp": "%s"
+                }
+                """.formatted(message, Instant.now());
+        TextMessage msg = new TextMessage(json);
+        session.sendMessage(msg);
+
     }
 }

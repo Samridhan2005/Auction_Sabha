@@ -1,6 +1,8 @@
 package com.cts.mfrp.au.service;
 
-import com.cts.mfrp.au.handler.BroadcastWebSocketHandler;
+import com.cts.mfrp.au.exception.AuctionCannotStartException;
+import com.cts.mfrp.au.exception.AuctionCannotStopException;
+import com.cts.mfrp.au.exception.AuctionNotFoundException;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.repository.AuctionRepository;
@@ -15,19 +17,15 @@ public class AuctionService {
     @Autowired
     private AuctionRepository auctionRepository;
 
-
     public AuctionService(AuctionRepository auctionRepository) {
         this.auctionRepository = auctionRepository;
     }
 
-
     public void startAuction(int auctionId) throws Exception {
-
         Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new RuntimeException("Auction not found"));
-
+                .orElseThrow(() -> new AuctionNotFoundException("Auction not found"));
         if (!"CREATED".equals(auction.getStatus())) {
-            throw new IllegalStateException("Auction cannot be started");
+            throw new AuctionCannotStartException("Auction cannot be started");
         }
 
         auction.setStatus("LIVE");
@@ -39,10 +37,10 @@ public class AuctionService {
     public void stopAuction(int auctionId) throws Exception {
 
         Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new RuntimeException("Auction not found"));
+                .orElseThrow(() -> new AuctionNotFoundException("Auction not found"));
 
         if (!"LIVE".equals(auction.getStatus())) {
-            throw new IllegalStateException("Auction is not live");
+            throw new AuctionCannotStopException("Auction is not live");
         }
 
         auction.setStatus("CLOSED");
@@ -52,14 +50,13 @@ public class AuctionService {
     }
 
     public boolean isAuctionLive(Auction auction) {
-
         return "LIVE".equals(auction.getStatus());
     }
 
 
     public double getDefaultPrice(int auctionId) {
         Auction auction = auctionRepository.findById(auctionId)
-                .orElseThrow(() -> new RuntimeException("Auction not found"));
+                .orElseThrow(() -> new AuctionNotFoundException("Auction not found"));
         return auction.getProduct().getStartingPrice();
     }
 
@@ -69,7 +66,7 @@ public class AuctionService {
     }
 
     public void setHighestBidder(int auctionId, User u){
-        Auction auction =auctionRepository.findById(auctionId).orElseThrow(() -> new RuntimeException("Auction not found"));
+        Auction auction =auctionRepository.findById(auctionId).orElseThrow(() -> new AuctionNotFoundException("Auction not found"));
         auction.setHighestBidder(u);
         auctionRepository.save(auction);
     }

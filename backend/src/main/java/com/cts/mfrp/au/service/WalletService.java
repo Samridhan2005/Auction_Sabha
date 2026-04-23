@@ -1,5 +1,6 @@
 package com.cts.mfrp.au.service;
 
+import com.cts.mfrp.au.exception.WalletNotFoundException;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.model.Wallet;
@@ -158,13 +159,13 @@ public class WalletService {
     }
 
     public synchronized void freezeBal(int userId,float amount){
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
         wallet.setFrozenBalance(wallet.getFrozenBalance() + amount);
         wallet.setAvailableBalance(wallet.getAvailableBalance() - amount);
         walletRepo.save(wallet);
     }
     public synchronized void unfreezeBal(int userId,float amount){
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
         wallet.setFrozenBalance(wallet.getFrozenBalance() - amount);
         wallet.setAvailableBalance(wallet.getAvailableBalance() + amount);
         walletRepo.save(wallet);
@@ -173,7 +174,7 @@ public class WalletService {
         Auction a=auctionService.findById(auctionId);
         User u=a.getHighestBidder();
         int userId=u.getUserId();
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
         float payoutAmount=wallet.getFrozenBalance();
         wallet.setFrozenBalance(0);
         Transaction tx = new Transaction();
