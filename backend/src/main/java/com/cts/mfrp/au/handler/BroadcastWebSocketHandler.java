@@ -3,10 +3,8 @@ package com.cts.mfrp.au.handler;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.model.Bid;
 import com.cts.mfrp.au.model.BidExt;
-import com.cts.mfrp.au.service.AuctionService;
-import com.cts.mfrp.au.service.BidService;
-import com.cts.mfrp.au.service.BidTimerService;
-import com.cts.mfrp.au.service.UserService;
+import com.cts.mfrp.au.model.User;
+import com.cts.mfrp.au.service.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,6 +32,13 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     private AuctionService auctionService;
     @Autowired
     private BidService bidService;
+    @Autowired private WalletService walletService;
+    @Setter
+    @Getter
+    private float curBid;
+    private int prevUserId;
+
+
 
 
     @Override
@@ -42,9 +47,7 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Connected: " + session.getId());
     }
 
-    @Setter
-    @Getter
-    private double curBid;
+
 
     //    @Override
 //    protected void handleTextMessage(WebSocketSession session, TextMessage message)throws Exception {
@@ -59,11 +62,43 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         BidExt bid = objectMapper.readValue(message.getPayload(), BidExt.class);
         Auction auction = auctionService.findById(bid.getAuctionId());
 
+        User u=userService.findById(bid.getBidderId());
+
+        if(u==null){
+            session.sendMessage(new TextMessage("""
+            {
+              "type": "ERROR",
+              "message": "Not a valid user."
+            }
+            """));
+            return;
+        }
+
+        if (auction==null) {
+            session.sendMessage(new TextMessage("""
+            {
+              "type": "ERROR",
+              "message": "Auction not found."
+            }
+            """));
+            return;
+        }
+
         if (!"LIVE".equals(auction.getStatus())) {
             session.sendMessage(new TextMessage("""
             {
               "type": "ERROR",
-              "message": "Auction is not live"
+              "message": "Auction is not live."
+            }
+            """));
+            return;
+        }
+
+        if(walletService.getBalance(bid.getBidderId()).getAvailableBalance()<bid.getAmount()){
+            session.sendMessage(new TextMessage("""
+            {
+              "type": "ERROR",
+              "message": "Bid Amount Should not be greater than your wallet balance."
             }
             """));
             return;
@@ -78,12 +113,17 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             """));
             return;
         }
+        if(prevUserId!=0){
+            walletService.unfreezeBal(prevUserId,curBid);
+            walletService.freezeBal(bid.getBidderId(),bid.getAmount());
+        }
+        auctionService.setHighestBidder(auction.getAuctionId(), u);
         curBid=bid.getAmount();
-//        Bid x=new Bid();
-//        x.setBidAmount((float)curBid);
-//        x.setBidder(userService.findById(bid.getBidderId()));
-//        x.setAuction(auction);
-//        bidService.insertBid(x);
+        Bid x=new Bid();
+        x.setBidAmount(curBid);
+        x.setBidder(userService.findById(bid.getBidderId()));
+        x.setAuction(auction);
+        bidService.insertBid(x);
 
 
         bidTimerService.resetTimer(bid.getAuctionId());
@@ -91,6 +131,7 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         String json = objectMapper.writeValueAsString(bid);
         TextMessage textMessage = new TextMessage(json);
         broadcast(textMessage);
+        prevUserId=bid.getBidderId();
     }
 
 

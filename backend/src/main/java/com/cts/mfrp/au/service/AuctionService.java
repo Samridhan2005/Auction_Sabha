@@ -2,6 +2,7 @@ package com.cts.mfrp.au.service;
 
 import com.cts.mfrp.au.handler.BroadcastWebSocketHandler;
 import com.cts.mfrp.au.model.Auction;
+import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.repository.AuctionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -66,4 +67,11 @@ public class AuctionService {
         Optional<Auction> op= auctionRepository.findById(id);
         return op.orElse(null);
     }
+
+    public void setHighestBidder(int auctionId, User u){
+        Auction auction =auctionRepository.findById(auctionId).orElseThrow(() -> new RuntimeException("Auction not found"));
+        auction.setHighestBidder(u);
+        auctionRepository.save(auction);
+    }
+
 }

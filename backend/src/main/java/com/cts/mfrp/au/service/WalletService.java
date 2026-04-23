@@ -1,9 +1,12 @@
 package com.cts.mfrp.au.service;
 
+import com.cts.mfrp.au.model.Auction;
+import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.model.Wallet;
 import com.cts.mfrp.au.model.Transaction;
 import com.cts.mfrp.au.repository.WalletRepository;
 import com.cts.mfrp.au.repository.TransactionRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -11,8 +14,13 @@ import java.util.List;
 
 @Service
 public class WalletService {
-    private final WalletRepository walletRepo;
-    private final TransactionRepository transactionRepo;
+    @Autowired
+    private WalletRepository walletRepo;
+    @Autowired
+    private TransactionRepository transactionRepo;
+    @Autowired private AuctionService auctionService;
+
+    public  WalletService(){}
 
     public WalletService(WalletRepository walletRepo, TransactionRepository transactionRepo) {
         this.walletRepo = walletRepo;
@@ -148,4 +156,35 @@ public class WalletService {
                 .orElseThrow(() -> new RuntimeException("Wallet not found for userId: " + userId));
         return transactionRepo.findByWalletId(wallet.getWalletId());
     }
+
+    public synchronized void freezeBal(int userId,float amount){
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        wallet.setFrozenBalance(wallet.getFrozenBalance() + amount);
+        wallet.setAvailableBalance(wallet.getAvailableBalance() - amount);
+        walletRepo.save(wallet);
+    }
+    public synchronized void unfreezeBal(int userId,float amount){
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        wallet.setFrozenBalance(wallet.getFrozenBalance() - amount);
+        wallet.setAvailableBalance(wallet.getAvailableBalance() + amount);
+        walletRepo.save(wallet);
+    }
+    public void commit(int auctionId){
+        Auction a=auctionService.findById(auctionId);
+        User u=a.getHighestBidder();
+        int userId=u.getUserId();
+        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new RuntimeException("Wallet not found for seller userId: " + userId));
+        float payoutAmount=wallet.getFrozenBalance();
+        wallet.setFrozenBalance(0);
+        Transaction tx = new Transaction();
+        tx.setWalletId(wallet.getWalletId());
+        tx.setAuctionId(auctionId);
+        tx.setType("payout");
+        tx.setAmount(payoutAmount);
+        tx.setStatus("SUCCESS");
+        tx.setCreatedAt(new Date());
+        transactionRepo.save(tx);
+        walletRepo.save(wallet);
+    }
+
 }
