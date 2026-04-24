@@ -1,9 +1,6 @@
 package com.cts.mfrp.au.handler;
 
-import com.cts.mfrp.au.exception.AuctionCannotStartException;
-import com.cts.mfrp.au.exception.AuctionCannotStopException;
-import com.cts.mfrp.au.exception.AuctionNotFoundException;
-import com.cts.mfrp.au.exception.WalletNotFoundException;
+import com.cts.mfrp.au.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -32,6 +29,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<String> handleDuplicateEmail(DuplicateEmailException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntime(RuntimeException ex) {

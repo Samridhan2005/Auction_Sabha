@@ -1,6 +1,7 @@
 package com.cts.mfrp.au.service;
 
 import com.cts.mfrp.au.dto.RegisterRequest;
+import com.cts.mfrp.au.exception.DuplicateEmailException;
 import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,7 @@ public class UserService {
 
     public User registerUser(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()) != null) {
-            throw new RuntimeException("Email already registered!");
+            throw new DuplicateEmailException("Email already registered!");
         }
 
         User newUser = new User();

@@ -50,14 +50,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Connected: " + session.getId());
     }
 
-
-    //    @Override
-//    protected void handleTextMessage(WebSocketSession session, TextMessage message)throws Exception {
-//        BidExt bidExt = objectMapper.readValue(message.getPayload(), BidExt.class);
-//        System.out.println("Received employee: " + bidExt.getBidderId());
-//        broadcast(bidExt);
-//    }
-
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try{
@@ -104,7 +96,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     }
 
     private void broadcast(TextMessage textMessage) throws Exception {
-
         for (WebSocketSession s : sessions) {
             if (s.isOpen()) {
                 s.sendMessage(textMessage);
@@ -113,7 +104,6 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     }
 
     public void broadcastSystemEvent(String type, int auctionId) throws Exception {
-
         String json = """
                 {
                   "type": "%s",
@@ -121,15 +111,11 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
                   "timestamp": "%s"
                 }
                 """.formatted(type, auctionId, Instant.now());
-
         TextMessage message = new TextMessage(json);
-
         broadcast(message);
     }
 
-
     private void sendError(WebSocketSession session, String message) throws Exception {
-
         String json = """
                 {
                   "type": "ERROR",
@@ -139,6 +125,5 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
                 """.formatted(message, Instant.now());
         TextMessage msg = new TextMessage(json);
         session.sendMessage(msg);
-
     }
 }
