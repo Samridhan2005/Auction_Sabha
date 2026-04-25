@@ -38,6 +38,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleRuntime(RuntimeException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+    @ExceptionHandler(WalletNoSufficientBalance.class)
+    public ResponseEntity<String> handleWalletNoSufficient(WalletNoSufficientBalance ex){
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 
 
 }

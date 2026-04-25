@@ -20,6 +20,8 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -64,8 +66,9 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
 
             if (prevUserId != 0) {
                 walletService.unfreezeBal(prevUserId, curBid);
-                walletService.freezeBal(bid.getBidderId(), bid.getAmount());
             }
+            walletService.freezeBal(bid.getBidderId(), bid.getAmount());
+
             auctionService.setHighestBidder(auction.getAuctionId(), u);
             curBid = bid.getAmount();
             Bid x = new Bid();
@@ -76,7 +79,12 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
 
             bidTimerService.resetTimer(bid.getAuctionId());
 
-            String json = objectMapper.writeValueAsString(bid);
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put("auctionId", bid.getAuctionId());
+            response.put("bidderId", bid.getBidderId());
+            response.put("amount", bid.getAmount());
+            response.put("highestBidder", u.getName());
+            String json = objectMapper.writeValueAsString(response);
             TextMessage textMessage = new TextMessage(json);
             broadcast(textMessage);
             prevUserId = bid.getBidderId();
