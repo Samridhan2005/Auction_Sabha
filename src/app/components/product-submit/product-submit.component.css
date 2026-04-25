@@ -1,0 +1,9 @@
+.preview-image-wrapper {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}

@@ -1,0 +1,246 @@
+<div class="page-wrapper">
+  <div class="container">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-wallet2 text-primary fs-3 me-3"></i>
+        <div>
+          <h3 class="fw-bold mb-0">My Wallet</h3>
+          <p class="text-muted small mb-0">Manage your auction balance</p>
+        </div>
+      </div>
+      <button class="btn btn-outline-primary btn-sm" (click)="refreshAll()" [disabled]="walletLoading">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+
+    <!-- User ID Input (when not stored) -->
+    <div class="card mb-4 border-warning" *ngIf="showUserIdInput">
+      <div class="card-body">
+        <h6 class="fw-bold text-warning mb-2">
+          <i class="bi bi-person-badge me-2"></i>User ID Required
+        </h6>
+        <p class="text-muted small mb-3">
+          Your User ID wasn't stored automatically. Please enter the User ID assigned during registration.
+        </p>
+        <div class="input-group" style="max-width: 320px;">
+          <input
+            type="number"
+            class="form-control"
+            placeholder="Enter your User ID (e.g. 5)"
+            [(ngModel)]="manualUserId"
+            (keyup.enter)="applyManualUserId()"
+            min="1"
+          />
+          <button class="btn btn-warning fw-semibold" (click)="applyManualUserId()" [disabled]="!manualUserId">
+            Load Wallet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Wallet -->
+    <div class="text-center py-4" *ngIf="walletLoading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-2">Loading wallet...</p>
+    </div>
+
+    <!-- Wallet Error -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="walletError && !walletLoading">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ walletError }}</span>
+    </div>
+
+    <!-- Wallet Content -->
+    <div *ngIf="wallet && !walletLoading">
+      <!-- Balance Cards -->
+      <div class="row g-4 mb-4">
+        <!-- Available Balance -->
+        <div class="col-md-6">
+          <div class="wallet-balance-card">
+            <div class="d-flex align-items-start justify-content-between mb-3">
+              <div>
+                <p class="mb-1 small opacity-75 text-uppercase fw-semibold">Available Balance</p>
+                <div class="wallet-balance-amount">{{ formatCurrency(wallet.availableBalance) }}</div>
+              </div>
+              <div class="wallet-icon">
+                <i class="bi bi-wallet2 display-5 opacity-50"></i>
+              </div>
+            </div>
+            <p class="mb-0 small opacity-75">
+              <i class="bi bi-clock me-1"></i>
+              Updated: {{ wallet.lastUpdated | date:'dd MMM yyyy, HH:mm' }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Frozen Balance -->
+        <div class="col-md-6">
+          <div class="frozen-balance-card">
+            <div class="d-flex align-items-start justify-content-between mb-3">
+              <div>
+                <p class="mb-1 small opacity-75 text-uppercase fw-semibold">Frozen Balance</p>
+                <div class="wallet-balance-amount text-dark">{{ formatCurrency(wallet.frozenBalance) }}</div>
+              </div>
+              <div>
+                <i class="bi bi-lock-fill display-5 opacity-40 text-dark"></i>
+              </div>
+            </div>
+            <p class="mb-0 small text-muted">
+              <i class="bi bi-info-circle me-1"></i>
+              Held as bid collateral
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deposit & Withdraw Forms -->
+      <div class="row g-4 mb-4">
+        <!-- Deposit -->
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h6 class="fw-bold mb-3">
+              <i class="bi bi-arrow-down-circle text-success me-2"></i>Deposit Funds
+            </h6>
+            <div class="alert alert-success py-2 small" *ngIf="depositSuccess">
+              <i class="bi bi-check-circle me-1"></i>{{ depositSuccess }}
+            </div>
+            <div class="alert alert-danger py-2 small" *ngIf="depositError">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ depositError }}
+            </div>
+            <form [formGroup]="depositForm" (ngSubmit)="onDeposit()" novalidate>
+              <div class="input-group mb-3">
+                <span class="input-group-text fw-bold">&#x20B9;</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="amount"
+                  placeholder="Enter amount"
+                  min="1"
+                  [class.is-invalid]="depositForm.get('amount')?.invalid && depositForm.get('amount')?.touched"
+                />
+                <div class="invalid-feedback">
+                  <span *ngIf="depositForm.get('amount')?.errors?.['required']">Amount is required.</span>
+                  <span *ngIf="depositForm.get('amount')?.errors?.['min']">Amount must be at least ₹1.</span>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success w-100 fw-semibold" [disabled]="depositLoading">
+                <span *ngIf="depositLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!depositLoading" class="bi bi-plus-circle me-2"></i>
+                {{ depositLoading ? 'Depositing...' : 'Deposit' }}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Withdraw -->
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h6 class="fw-bold mb-3">
+              <i class="bi bi-arrow-up-circle text-danger me-2"></i>Withdraw Funds
+            </h6>
+            <div class="alert alert-success py-2 small" *ngIf="withdrawSuccess">
+              <i class="bi bi-check-circle me-1"></i>{{ withdrawSuccess }}
+            </div>
+            <div class="alert alert-danger py-2 small" *ngIf="withdrawError">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ withdrawError }}
+            </div>
+            <form [formGroup]="withdrawForm" (ngSubmit)="onWithdraw()" novalidate>
+              <div class="input-group mb-3">
+                <span class="input-group-text fw-bold">&#x20B9;</span>
+                <input
+                  type="number"
+                  class="form-control"
+                  formControlName="amount"
+                  placeholder="Enter amount"
+                  min="1"
+                  [class.is-invalid]="withdrawForm.get('amount')?.invalid && withdrawForm.get('amount')?.touched"
+                />
+                <div class="invalid-feedback">
+                  <span *ngIf="withdrawForm.get('amount')?.errors?.['required']">Amount is required.</span>
+                  <span *ngIf="withdrawForm.get('amount')?.errors?.['min']">Amount must be at least ₹1.</span>
+                </div>
+              </div>
+              <button type="submit" class="btn btn-danger w-100 fw-semibold" [disabled]="withdrawLoading">
+                <span *ngIf="withdrawLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i *ngIf="!withdrawLoading" class="bi bi-dash-circle me-2"></i>
+                {{ withdrawLoading ? 'Withdrawing...' : 'Withdraw' }}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Transaction History -->
+      <div class="card">
+        <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
+          <h6 class="fw-bold mb-0">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Transaction History
+          </h6>
+          <span class="badge bg-primary">{{ transactions.length }} records</span>
+        </div>
+
+        <!-- Tx Loading -->
+        <div class="text-center py-4" *ngIf="txLoading">
+          <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+          <span class="text-muted ms-2">Loading transactions...</span>
+        </div>
+
+        <!-- Tx Error -->
+        <div class="card-body" *ngIf="txError && !txLoading">
+          <div class="alert alert-danger mb-0">{{ txError }}</div>
+        </div>
+
+        <!-- Empty Tx -->
+        <div class="card-body text-center py-4" *ngIf="!txLoading && !txError && transactions.length === 0">
+          <i class="bi bi-receipt display-3 text-muted"></i>
+          <p class="text-muted mt-3">No transactions yet.</p>
+        </div>
+
+        <!-- Tx Table -->
+        <div class="table-responsive" *ngIf="!txLoading && transactions.length > 0">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Auction ID</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tx of transactions">
+                <td>
+                  <i class="bi me-2" [ngClass]="getTransactionIcon(tx.type)"></i>
+                  <span class="fw-semibold" [ngClass]="getTransactionTypeClass(tx.type)">
+                    {{ tx.type | titlecase }}
+                  </span>
+                </td>
+                <td class="fw-bold" [ngClass]="getTransactionTypeClass(tx.type)">
+                  {{ formatCurrency(tx.amount) }}
+                </td>
+                <td>
+                  <span class="badge"
+                        [ngClass]="{
+                          'bg-success': tx.status === 'SUCCESS',
+                          'bg-danger': tx.status === 'FAILED',
+                          'bg-warning text-dark': tx.status === 'PENDING'
+                        }">
+                    {{ tx.status }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngIf="tx.auctionId" class="text-muted">#{{ tx.auctionId }}</span>
+                  <span *ngIf="!tx.auctionId" class="text-muted">—</span>
+                </td>
+                <td class="text-muted small">{{ tx.createdAt | date:'dd MMM yyyy, HH:mm' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
