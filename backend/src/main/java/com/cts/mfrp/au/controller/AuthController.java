@@ -32,7 +32,7 @@ public class AuthController {
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
         // Return response with token
-        LoginResponse response = new LoginResponse("Login Successful", user.getRole(), token);
+        LoginResponse response = new LoginResponse("Login Successful", user.getRole(), token, user.getUserId());
 
         return ResponseEntity.ok(response);
     }

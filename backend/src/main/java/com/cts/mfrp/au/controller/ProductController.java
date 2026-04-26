@@ -1,6 +1,9 @@
 package com.cts.mfrp.au.controller;
 
+import com.cts.mfrp.au.dto.ProductSubmitRequest;
+import com.cts.mfrp.au.model.Category;
 import com.cts.mfrp.au.model.Product;
+import com.cts.mfrp.au.repository.CategoryRepository;
 import com.cts.mfrp.au.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +17,20 @@ public class ProductController {
 
     @Autowired
     private ProductService productService;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @GetMapping("/categories")
+    public List<Category> getCategories() {
+        return categoryRepository.findAll();
+    }
+
+    // 0. All approved products
+    @GetMapping("/all")
+    public List<Product> getAll() {
+        return productService.getAllApproved();
+    }
 
     // 1. Browse by Category
     @GetMapping("/category/{id}")
@@ -48,4 +65,14 @@ public class ProductController {
         if(response.startsWith("Error")) return ResponseEntity.badRequest().body(response);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/submit")
+    public ResponseEntity<Product> submitProduct(
+            @RequestParam("sellerId") int sellerId,
+            @RequestBody ProductSubmitRequest request) {
+
+        Product savedProduct = productService.submitProduct(sellerId, request.getCategoryId(), request);
+        return ResponseEntity.ok(savedProduct);
+    }
+
 }
