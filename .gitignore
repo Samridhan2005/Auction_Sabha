@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+frontend/.angular
+frontend/node_modules/*
+backend/src/main/resources/application.properties
