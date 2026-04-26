@@ -1,0 +1,151 @@
+<div class="auth-wrapper">
+  <div class="auth-card card p-4 p-md-5 shadow-lg">
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="mb-3">
+        <i class="bi bi-hammer display-4 text-primary"></i>
+      </div>
+      <h2 class="fw-bold text-primary mb-1">Create Account</h2>
+      <p class="text-muted">Join Auction Sabha today</p>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <div class="alert alert-success d-flex align-items-center gap-2" *ngIf="successMessage">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <!-- Register Form -->
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Full Name -->
+      <div class="mb-3">
+        <label for="name" class="form-label fw-semibold">Full Name</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-person"></i></span>
+          <input
+            id="name"
+            type="text"
+            class="form-control"
+            formControlName="name"
+            placeholder="John Doe"
+            [class.is-invalid]="nameControl?.invalid && nameControl?.touched"
+          />
+          <div class="invalid-feedback">
+            <span *ngIf="nameControl?.errors?.['required']">Full name is required.</span>
+            <span *ngIf="nameControl?.errors?.['minlength']">Name must be at least 2 characters.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="mb-3">
+        <label for="email" class="form-label fw-semibold">Email Address</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+          <input
+            id="email"
+            type="email"
+            class="form-control"
+            formControlName="email"
+            placeholder="you@example.com"
+            [class.is-invalid]="emailControl?.invalid && emailControl?.touched"
+          />
+          <div class="invalid-feedback">
+            <span *ngIf="emailControl?.errors?.['required']">Email is required.</span>
+            <span *ngIf="emailControl?.errors?.['email']">Enter a valid email address.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="mb-3">
+        <label for="password" class="form-label fw-semibold">Password</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-lock"></i></span>
+          <input
+            id="password"
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-control"
+            formControlName="password"
+            placeholder="Min 6 characters"
+            [class.is-invalid]="passwordControl?.invalid && passwordControl?.touched"
+          />
+          <button type="button" class="btn btn-outline-secondary" (click)="togglePassword()">
+            <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+          <div class="invalid-feedback">
+            <span *ngIf="passwordControl?.errors?.['required']">Password is required.</span>
+            <span *ngIf="passwordControl?.errors?.['minlength']">Password must be at least 6 characters.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone -->
+      <div class="mb-3">
+        <label for="phone" class="form-label fw-semibold">Phone Number</label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+          <input
+            id="phone"
+            type="tel"
+            class="form-control"
+            formControlName="phone"
+            placeholder="10-15 digit number"
+            [class.is-invalid]="phoneControl?.invalid && phoneControl?.touched"
+          />
+          <div class="invalid-feedback">
+            <span *ngIf="phoneControl?.errors?.['required']">Phone number is required.</span>
+            <span *ngIf="phoneControl?.errors?.['pattern']">Enter a valid 10-15 digit phone number.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Role -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">I want to register as</label>
+        <div class="d-flex flex-column gap-2">
+          <div class="form-check border rounded p-2">
+            <input class="form-check-input" type="radio" formControlName="role" id="roleBuyer" value="BUYER" />
+            <label class="form-check-label w-100" for="roleBuyer">
+              <i class="bi bi-bag-check me-1 text-warning"></i><strong>Bidder</strong>
+              <small class="d-block text-muted">Participate in live auctions and place bids.</small>
+            </label>
+          </div>
+          <div class="form-check border rounded p-2">
+            <input class="form-check-input" type="radio" formControlName="role" id="roleSeller" value="SELLER" />
+            <label class="form-check-label w-100" for="roleSeller">
+              <i class="bi bi-shop me-1 text-info"></i><strong>Seller</strong>
+              <small class="d-block text-muted">List items for auction after verification.</small>
+            </label>
+          </div>
+          <div class="form-check border rounded p-2">
+            <input class="form-check-input" type="radio" formControlName="role" id="roleVerifier" value="VERIFIER" />
+            <label class="form-check-label w-100" for="roleVerifier">
+              <i class="bi bi-clipboard-check me-1 text-success"></i><strong>Product Verifier</strong>
+              <small class="d-block text-muted">Review and approve product submissions as a Trust Authority.</small>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span *ngIf="!isLoading"><i class="bi bi-person-plus me-2"></i></span>
+        {{ isLoading ? 'Creating account...' : 'Create Account' }}
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="text-center mt-4">
+      <p class="text-muted mb-0">
+        Already have an account?
+        <a routerLink="/login" class="text-primary fw-semibold text-decoration-none">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>

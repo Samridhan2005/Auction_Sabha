@@ -1,0 +1,33 @@
+.admin-tabs .nav-link {
+  color: #1a237e;
+  font-size: 0.95rem;
+  border-radius: 0;
+}
+
+.admin-tabs .nav-link.active {
+  background-color: #1a237e !important;
+  color: white !important;
+  border-color: #1a237e !important;
+}
+
+.admin-tabs .nav-link:not(.active):hover {
+  background-color: rgba(26, 35, 126, 0.08);
+}
+
+.review-card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.review-card:hover {
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 1rem;
+  z-index: 1100;
+  max-width: 380px;
+}

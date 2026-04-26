@@ -1,0 +1,173 @@
+/* ============================================================
+   Navbar Component — Premium Dark Navy
+   ============================================================ */
+
+/* ---------- Navbar Base ---------- */
+.navbar-custom {
+  background: var(--primary) !important;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  min-height: 64px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* ---------- Brand ---------- */
+.brand-logo {
+  text-decoration: none;
+}
+
+.brand-icon-wrap {
+  width: 36px;
+  height: 36px;
+  background: rgba(245,158,11,0.15);
+  border: 1.5px solid rgba(245,158,11,0.4);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+}
+
+.brand-icon-wrap:hover {
+  background: rgba(245,158,11,0.25);
+}
+
+.brand-hammer {
+  color: #f59e0b;
+  font-size: 1.1rem;
+}
+
+.brand-text {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.3px;
+}
+
+/* ---------- Nav Links ---------- */
+.nav-link-custom {
+  color: rgba(255,255,255,0.82) !important;
+  font-weight: 500;
+  font-size: 0.92rem;
+  padding: 1.1rem 0.85rem !important;
+  position: relative;
+  transition: color 0.2s ease;
+  white-space: nowrap;
+}
+
+.nav-link-custom::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  right: 50%;
+  height: 2px;
+  background: #f59e0b;
+  border-radius: 2px 2px 0 0;
+  transition: left 0.25s ease, right 0.25s ease;
+}
+
+.nav-link-custom:hover,
+.nav-link-custom.active {
+  color: white !important;
+}
+
+.nav-link-custom:hover::after,
+.nav-link-custom.active::after {
+  left: 0.85rem;
+  right: 0.85rem;
+}
+
+/* ---------- Role Badge ---------- */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.role-buyer {
+  background: rgba(245,158,11,0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245,158,11,0.35);
+}
+
+.role-seller {
+  background: rgba(6,182,212,0.15);
+  color: #67e8f9;
+  border: 1px solid rgba(6,182,212,0.3);
+}
+
+.role-admin {
+  background: rgba(239,68,68,0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239,68,68,0.3);
+}
+
+.role-verifier {
+  background: rgba(16,185,129,0.15);
+  color: #6ee7b7;
+  border: 1px solid rgba(16,185,129,0.3);
+}
+
+/* ---------- User Chip ---------- */
+.user-chip {
+  background: rgba(255,255,255,0.08);
+  border-radius: 100px;
+  padding: 4px 14px;
+  color: rgba(255,255,255,0.8);
+  font-size: 0.82rem;
+  font-weight: 500;
+  max-width: 200px;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* ---------- Logout Button ---------- */
+.logout-btn {
+  border-radius: 8px;
+  font-size: 0.82rem;
+  padding: 5px 14px;
+  border-color: rgba(255,255,255,0.3) !important;
+  color: rgba(255,255,255,0.9) !important;
+  transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+  background: rgba(255,255,255,0.1) !important;
+  border-color: rgba(255,255,255,0.6) !important;
+  color: white !important;
+}
+
+/* ---------- Toggler ---------- */
+.navbar-toggler {
+  border-color: rgba(255,255,255,0.3) !important;
+}
+
+.navbar-toggler:focus {
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.35);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px) {
+  .nav-link-custom {
+    padding: 0.6rem 0 !important;
+  }
+
+  .nav-link-custom::after {
+    display: none;
+  }
+
+  .navbar-collapse {
+    padding: 1rem 0;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin-top: 0.5rem;
+  }
+}

@@ -1,0 +1,135 @@
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1200">
+  <div *ngFor="let toast of toasts" class="toast show align-items-center border-0 mb-2"
+       [ngClass]="{'text-bg-success': toast.type==='success','text-bg-danger': toast.type==='danger','text-bg-info': toast.type==='info'}" role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi me-2" [ngClass]="{'bi-check-circle-fill': toast.type==='success','bi-x-circle-fill': toast.type==='danger','bi-info-circle-fill': toast.type==='info'}"></i>
+        {{ toast.text }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="dismissToast(toast.id)"></button>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+  <div class="container">
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-shield-check-fill text-success fs-3 me-3"></i>
+        <div>
+          <h3 class="fw-bold mb-0">Verifier Dashboard</h3>
+          <p class="text-muted small mb-0">Review submitted products and approve or reject listings.</p>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-warning text-dark fs-6" *ngIf="products.length > 0">
+          {{ products.length }} Pending
+        </span>
+        <button class="btn btn-outline-primary btn-sm" (click)="loadPending()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-3">Loading pending products...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ errorMessage }}</span>
+      <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadPending()">Retry</button>
+    </div>
+
+    <!-- Empty State -->
+    <div class="text-center py-5" *ngIf="!isLoading && !errorMessage && products.length === 0">
+      <i class="bi bi-check-all display-2 text-success"></i>
+      <h5 class="mt-3 text-muted">All caught up!</h5>
+      <p class="text-muted">No pending products to review at the moment.</p>
+    </div>
+
+    <!-- Product Cards -->
+    <div class="row g-4" *ngIf="!isLoading && products.length > 0">
+      <div class="col-12" *ngFor="let product of products">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <div class="row g-3 align-items-start">
+
+              <!-- Image -->
+              <div class="col-md-2 col-3">
+                <img
+                  [src]="product.imageUrl || 'assets/no-image.svg'"
+                  class="img-fluid rounded"
+                  style="height: 120px; width: 100%; object-fit: cover;"
+                  [alt]="product.productName"
+                  (error)="$any($event.target).src='assets/no-image.svg'"
+                />
+              </div>
+
+              <!-- Details -->
+              <div class="col-md-5 col-9">
+                <div class="d-flex gap-2 mb-2">
+                  <span class="badge bg-light text-dark">{{ product.category.categoryName }}</span>
+                  <span class="badge bg-warning text-dark">PENDING REVIEW</span>
+                </div>
+                <h5 class="fw-bold mb-1">{{ product.productName }}</h5>
+                <p class="text-muted small mb-2">{{ product.description }}</p>
+                <div class="d-flex gap-3 small text-muted">
+                  <span><i class="bi bi-person me-1"></i>{{ product.seller.name }}</span>
+                  <span><i class="bi bi-currency-rupee me-1"></i>Starting: <strong class="text-dark">{{ formatCurrency(product.startingPrice) }}</strong></span>
+                  <span><i class="bi bi-calendar me-1"></i>{{ product.submittedAt | date:'dd MMM yyyy' }}</span>
+                </div>
+              </div>
+
+              <!-- Review Actions -->
+              <div class="col-md-5">
+                <div class="card bg-light border-0 p-3">
+                  <h6 class="fw-semibold mb-2"><i class="bi bi-clipboard-check me-2 text-primary"></i>Review Actions</h6>
+
+                  <!-- Request More Info / Remarks -->
+                  <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Request More Information / Remarks</label>
+                    <textarea
+                      class="form-control form-control-sm"
+                      rows="3"
+                      placeholder="Enter remarks, clarification requests, or rejection reason here...&#10;e.g. Requesting additional authenticity documents"
+                      [(ngModel)]="productRemarks[product.productId]">
+                    </textarea>
+                    <div class="form-text">Required for rejection. Optional for approval.</div>
+                  </div>
+
+                  <!-- Buttons -->
+                  <div class="d-flex gap-2">
+                    <button
+                      class="btn btn-success flex-fill"
+                      (click)="approve(product.productId)"
+                      [disabled]="productActionLoading[product.productId]">
+                      <span *ngIf="productActionLoading[product.productId]" class="spinner-border spinner-border-sm me-1"></span>
+                      <i *ngIf="!productActionLoading[product.productId]" class="bi bi-check-lg me-1"></i>
+                      Approve
+                    </button>
+                    <button
+                      class="btn btn-danger flex-fill"
+                      (click)="reject(product.productId)"
+                      [disabled]="productActionLoading[product.productId]">
+                      <span *ngIf="productActionLoading[product.productId]" class="spinner-border spinner-border-sm me-1"></span>
+                      <i *ngIf="!productActionLoading[product.productId]" class="bi bi-x-lg me-1"></i>
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

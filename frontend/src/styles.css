@@ -1,1 +1,302 @@
-/* You can add global styles to this file, and also import other style files */
+/* ============================================================
+   Global Styles — Auction Sabha  (Premium Redesign)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+/* ---------- CSS Variables ---------- */
+:root {
+  --primary:           #1e3a5f;
+  --primary-light:     #2563eb;
+  --accent:            #f59e0b;
+  --accent-dark:       #d97706;
+  --live:              #ef4444;
+  --success:           #10b981;
+  --bg:                #f0f4f8;
+  --card-shadow:       0 2px 16px rgba(0,0,0,0.08);
+  --card-hover-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: #1e293b;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Keyframes ---------- */
+@keyframes pulse-live {
+  0%   { opacity: 1;   transform: scale(1);    box-shadow: 0 0 0 0 rgba(239,68,68,.6); }
+  50%  { opacity: 0.8; transform: scale(1.15); box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+  100% { opacity: 1;   transform: scale(1);    box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+}
+
+@keyframes bid-flash {
+  0%   { background-color: transparent; }
+  40%  { background-color: #bbf7d0; }
+  100% { background-color: transparent; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ---------- Animation helper classes ---------- */
+.fade-in-up {
+  animation: fade-in-up 0.4s ease both;
+}
+
+.bid-updated {
+  animation: bid-flash 1.2s ease;
+  border-radius: 6px;
+}
+
+/* ---------- Navbar ---------- */
+.navbar {
+  background: var(--primary) !important;
+  height: 64px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+
+/* ---------- Cards ---------- */
+.card {
+  border: none !important;
+  border-radius: 16px;
+  box-shadow: var(--card-shadow);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--card-hover-shadow);
+}
+
+/* ---------- LIVE Badge ---------- */
+.badge-live {
+  background-color: var(--live) !important;
+  color: white !important;
+  animation: pulse-live 1.5s infinite;
+}
+
+/* ---------- Bid flash ---------- */
+/* .bid-updated defined above in animation helpers */
+
+/* ---------- Page Wrapper ---------- */
+.page-wrapper {
+  min-height: calc(100vh - 64px);
+  padding: 2rem 0;
+}
+
+/* ---------- Auth Pages ---------- */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary) 0%, #1e40af 50%, #3b82f6 100%);
+}
+
+.auth-card {
+  max-width: 460px;
+  width: 100%;
+  border-radius: 20px !important;
+}
+
+/* ---------- Hero Banner ---------- */
+.hero-banner {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 55%, #7c3aed 100%);
+  border-radius: 20px;
+  min-height: 260px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-banner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 20% 50%, rgba(255,255,255,0.06) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(245,158,11,0.12) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* ---------- Auction Card ---------- */
+.auction-card .card-img-top {
+  height: 220px;
+  object-fit: cover;
+}
+
+/* ---------- Bid Panel (right panel on detail page) ---------- */
+.bid-panel {
+  background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+}
+
+.bid-amount {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -1px;
+  line-height: 1.1;
+}
+
+/* ---------- Live Room ---------- */
+.live-room-bg {
+  background: #0f172a;
+  min-height: 100vh;
+}
+
+/* ---------- Bid History ---------- */
+.bid-history-item {
+  border-left: 3px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.bid-history-item:first-child {
+  border-color: var(--accent);
+}
+
+/* ---------- Wallet ---------- */
+.wallet-balance-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  color: white;
+  border-radius: 20px;
+  padding: 2rem;
+}
+
+.wallet-balance-amount {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+/* ---------- Section Header ---------- */
+.section-header {
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+}
+
+/* ---------- Toast ---------- */
+.toast-container {
+  position: fixed;
+  top: 80px;
+  right: 1rem;
+  z-index: 1100;
+}
+
+/* ---------- Review Card ---------- */
+.review-card {
+  border-left: 4px solid var(--accent) !important;
+}
+
+/* ---------- Accent Button ---------- */
+.btn-accent {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.btn-accent:hover,
+.btn-accent:focus {
+  background: var(--accent-dark);
+  border-color: var(--accent-dark);
+  color: #1a1a1a;
+}
+
+/* ---------- Connection Dot ---------- */
+.connection-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.dot-live {
+  background: #10b981;
+  animation: pulse-live 1.5s infinite;
+}
+
+.dot-offline {
+  background: #6b7280;
+}
+
+/* ---------- Buttons ---------- */
+.btn-primary {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* ---------- Admin Tabs ---------- */
+.admin-tabs .nav-link.active {
+  background-color: var(--primary) !important;
+  color: white !important;
+  border-color: var(--primary) !important;
+}
+
+.admin-tabs .nav-link {
+  color: var(--primary);
+}
+
+/* ---------- Table ---------- */
+.table-hover tbody tr:hover {
+  background-color: rgba(30,58,95,0.05);
+}
+
+/* ---------- Status Badges ---------- */
+.status-created  { background-color: #0288d1; }
+.status-live     { background-color: var(--live); }
+.status-ended    { background-color: #64748b; }
+.status-approved { background-color: var(--success); }
+.status-pending  { background-color: #f57c00; }
+.status-rejected { background-color: var(--live); }
+
+/* ---------- Spinner Overlay ---------- */
+.spinner-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255,255,255,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 576px) {
+  .bid-amount {
+    font-size: 2rem;
+  }
+
+  .wallet-balance-amount {
+    font-size: 2.2rem;
+  }
+
+  .hero-banner {
+    min-height: 200px;
+  }
+
+  .page-wrapper {
+    padding: 1rem 0;
+  }
+}

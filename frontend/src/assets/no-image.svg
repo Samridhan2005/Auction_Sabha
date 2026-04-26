@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220" width="400" height="220">
+  <rect fill="#f1f5f9" width="400" height="220"/>
+  <rect fill="#e2e8f0" x="160" y="70" width="80" height="65" rx="8"/>
+  <circle fill="#cbd5e1" cx="200" cy="97" r="18"/>
+  <rect fill="#e2e8f0" x="172" y="118" width="56" height="4" rx="2"/>
+  <rect fill="#f1f5f9" x="185" y="76" width="10" height="6" rx="2"/>
+  <text fill="#94a3b8" font-family="sans-serif" font-size="13" font-weight="500" x="200" y="168" text-anchor="middle">No Image Available</text>
+</svg>

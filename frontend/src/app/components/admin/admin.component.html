@@ -1,0 +1,114 @@
+<!-- Toast Container -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1200">
+  <div *ngFor="let toast of toasts" class="toast show align-items-center border-0 mb-2"
+       [ngClass]="{'text-bg-success': toast.type==='success','text-bg-danger': toast.type==='danger','text-bg-info': toast.type==='info'}" role="alert">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="bi me-2" [ngClass]="{'bi-check-circle-fill': toast.type==='success','bi-x-circle-fill': toast.type==='danger','bi-info-circle-fill': toast.type==='info'}"></i>
+        {{ toast.text }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="dismissToast(toast.id)"></button>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div class="d-flex align-items-center">
+        <i class="bi bi-shield-fill text-danger fs-3 me-3"></i>
+        <div>
+          <h3 class="fw-bold mb-0">Auctioneer Panel</h3>
+          <p class="text-muted small mb-0">Start and stop live auction sessions.</p>
+        </div>
+      </div>
+      <button class="btn btn-outline-primary btn-sm" (click)="loadAuctions()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p class="text-muted mt-3">Loading auctions...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ errorMessage }}</span>
+      <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadAuctions()">Retry</button>
+    </div>
+
+    <!-- Empty -->
+    <div class="text-center py-5" *ngIf="!isLoading && !errorMessage && auctions.length === 0">
+      <i class="bi bi-calendar-x display-2 text-muted"></i>
+      <p class="text-muted mt-3">No featured auctions available to manage.</p>
+    </div>
+
+    <!-- Auctions Table -->
+    <div class="card shadow-sm" *ngIf="!isLoading && auctions.length > 0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>ID</th>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Current Bid</th>
+              <th>Highest Bidder</th>
+              <th>Status</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let auction of auctions">
+              <td class="text-muted small">#{{ auction.auctionId }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <img
+                    [src]="auction.imageUrl || 'assets/no-image.svg'"
+                    width="40" height="40" class="rounded" style="object-fit:cover;"
+                    (error)="$any($event.target).src='assets/no-image.svg'" alt=""
+                  />
+                  <span class="fw-semibold">{{ auction.productName }}</span>
+                </div>
+              </td>
+              <td><span class="badge bg-light text-dark">{{ auction.categoryName }}</span></td>
+              <td class="fw-bold text-primary">{{ formatCurrency(auction.currentBid) }}</td>
+              <td>
+                <span *ngIf="auction.highestBidder">{{ auction.highestBidder }}</span>
+                <span *ngIf="!auction.highestBidder" class="text-muted">—</span>
+              </td>
+              <td>
+                <span class="badge px-2 py-1"
+                      [ngClass]="{'bg-primary': auction.status==='CREATED','bg-danger': auction.status==='LIVE','bg-secondary': auction.status==='ENDED'}">
+                  {{ auction.status }}
+                </span>
+              </td>
+              <td class="text-center">
+                <div class="d-flex gap-2 justify-content-center">
+                  <button class="btn btn-success btn-sm"
+                          (click)="startAuction(auction.auctionId)"
+                          [disabled]="auctionActionLoading[auction.auctionId] || auction.status === 'LIVE' || auction.status === 'ENDED'">
+                    <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-play-fill me-1"></i>Start</span>
+                  </button>
+                  <button class="btn btn-danger btn-sm"
+                          (click)="stopAuction(auction.auctionId)"
+                          [disabled]="auctionActionLoading[auction.auctionId] || auction.status !== 'LIVE'">
+                    <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
+                    <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-stop-fill me-1"></i>Stop</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
