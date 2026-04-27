@@ -51,7 +51,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                    // Spring Security-kitta "Ivane kuttunnu" solliduvom
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }

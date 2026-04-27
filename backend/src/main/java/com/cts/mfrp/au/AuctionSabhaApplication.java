@@ -8,7 +8,6 @@ import org.springframework.context.ApplicationContext;
 
 @SpringBootApplication
 public class AuctionSabhaApplication {
-
 	public static void main(String[] args) {
         ApplicationContext con= SpringApplication.run(AuctionSabhaApplication.class, args);
         BidTimerService bt=con.getBean(BidTimerService.class);

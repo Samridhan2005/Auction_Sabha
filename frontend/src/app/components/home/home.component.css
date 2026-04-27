@@ -11,6 +11,20 @@
   overflow: hidden;
 }
 
+.timer-badge {
+    font-family: 'Courier New', Courier, monospace; /* Monospaced fonts don't jump when numbers change */
+    font-weight: bold;
+}
+
+.ending-soon {
+    color: #dc3545; /* Red color */
+    animation: blinker 1s linear infinite;
+}
+
+@keyframes blinker {
+    50% { opacity: 0.5; }
+}
+
 .hero-circle {
   position: absolute;
   border-radius: 50%;

@@ -24,11 +24,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   maxPrice = 1000000;
   priceRangeMax = 1000000;
 
+  // Timer properties
   private timerInterval: ReturnType<typeof setInterval> | null = null;
-  timerTick = 0;
+  timerTick = 0; // This increments every second to refresh the UI
 
   updatedBidIds: Set<number> = new Set();
-
   private wsSub!: Subscription;
 
   constructor(
@@ -40,15 +40,27 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadAuctions();
-    this.timerInterval = setInterval(() => { this.timerTick++; }, 1000);
+    
+    // 1. Initialize the countdown ticker
+    this.timerInterval = setInterval(() => { 
+      this.timerTick++; 
+    }, 1000);
+
     this.wsService.connect();
+    
     this.wsSub = this.wsService.messages$.subscribe((msg: BidUpdate) => {
       if (msg.type === 'AUCTION_STARTED' && msg.auctionId) {
         const auction = this.auctions.find(a => a.auctionId === msg.auctionId);
-        if (auction) { auction.status = 'LIVE'; this.applyFilters(); }
+        if (auction) { 
+          auction.status = 'LIVE'; 
+          this.applyFilters(); 
+        }
       } else if (msg.type === 'AUCTION_STOPPED' && msg.auctionId) {
         const auction = this.auctions.find(a => a.auctionId === msg.auctionId);
-        if (auction) { auction.status = 'ENDED'; this.applyFilters(); }
+        if (auction) { 
+          auction.status = 'ENDED'; 
+          this.applyFilters(); 
+        }
       } else if (!msg.type && msg.auctionId && msg.amount) {
         const auctionId = msg.auctionId;
         const auction = this.auctions.find(a => a.auctionId === auctionId);
@@ -72,9 +84,11 @@ export class HomeComponent implements OnInit, OnDestroy {
         const catSet = new Set<string>();
         data.forEach(a => { if (a.categoryName) catSet.add(a.categoryName); });
         this.categories = Array.from(catSet);
+        
         const prices = data.map(a => a.currentBid || a.startingPrice).filter(p => p > 0);
         this.priceRangeMax = prices.length > 0 ? Math.ceil(Math.max(...prices) * 2) : 1000000;
         this.maxPrice = this.priceRangeMax;
+        
         this.applyFilters();
         this.isLoading = false;
       },
@@ -93,6 +107,39 @@ export class HomeComponent implements OnInit, OnDestroy {
       const priceMatch = price >= this.minPrice && price <= this.maxPrice;
       return catMatch && statusMatch && priceMatch;
     });
+  }
+
+  // --- Countdown Logic ---
+  getCountdown(auction: AuctionCard): string {
+    // Referencing timerTick ensures the view refreshes every second
+    void this.timerTick; 
+    
+    if (auction.status === 'ENDED') return 'Ended';
+    if (!auction.endTime || auction.status === 'CREATED') return 'Upcoming';
+
+    const endTimeDate = new Date(auction.endTime).getTime();
+    const now = Date.now();
+    const remaining = endTimeDate - now;
+
+    if (remaining <= 0) {
+      // Logic to handle auto-expiry in UI
+      if (auction.status === 'LIVE') {
+          auction.status = 'ENDED';
+          this.applyFilters();
+      }
+      return 'Ended';
+    }
+
+    const h = Math.floor(remaining / 3600000);
+    const m = Math.floor((remaining % 3600000) / 60000);
+    const s = Math.floor((remaining % 60000) / 1000);
+
+    // Format the string (e.g., 01h 05m 20s)
+    const hoursStr = h > 0 ? `${h}h ` : '';
+    const minsStr = m > 0 || h > 0 ? `${m.toString().padStart(2, '0')}m ` : '';
+    const secsStr = `${s.toString().padStart(2, '0')}s`;
+
+    return `${hoursStr}${minsStr}${secsStr}`;
   }
 
   setStatus(status: string): void {
@@ -120,20 +167,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.applyFilters();
   }
 
-  getCountdown(auction: AuctionCard): string {
-    void this.timerTick;
-    if (auction.status === 'ENDED') return 'Ended';
-    if (!auction.endTime || auction.status === 'CREATED') return 'Upcoming';
-    const remaining = new Date(auction.endTime).getTime() - Date.now();
-    if (remaining <= 0) return 'Ending...';
-    const h = Math.floor(remaining / 3600000);
-    const m = Math.floor((remaining % 3600000) / 60000);
-    const s = Math.floor((remaining % 60000) / 1000);
-    if (h > 0) return `${h}h ${m}m ${s}s`;
-    if (m > 0) return `${m}m ${s}s`;
-    return `${s}s`;
-  }
-
   isJustUpdated(auctionId: number): boolean {
     return this.updatedBidIds.has(auctionId);
   }
@@ -155,7 +188,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.timerInterval) clearInterval(this.timerInterval);
-    if (this.wsSub) this.wsSub.unsubscribe();
+    // CRITICAL: Clean up to prevent memory leaks
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+    }
+    if (this.wsSub) {
+      this.wsSub.unsubscribe();
+    }
   }
 }

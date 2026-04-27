@@ -1,9 +1,7 @@
 <div class="page-wrapper">
   <div class="container">
 
-    <!-- ========== HERO BANNER ========== -->
     <div class="hero-banner p-4 p-md-5 mb-4 text-white fade-in-up">
-      <!-- Decorative circles -->
       <div class="hero-circle hero-circle-1"></div>
       <div class="hero-circle hero-circle-2"></div>
 
@@ -17,7 +15,6 @@
           <br class="d-none d-md-block"/>Premium items. Transparent pricing. Live experience.
         </p>
 
-        <!-- CTA Buttons -->
         <div class="d-flex justify-content-center gap-3 flex-wrap mb-5">
           <a routerLink="/home" class="btn btn-lg fw-bold px-4" style="background:var(--accent);color:#1a1a1a;border-color:var(--accent);">
             <i class="bi bi-lightning-fill me-2"></i>Participate Now
@@ -30,7 +27,6 @@
           </a>
         </div>
 
-        <!-- Stats Bar -->
         <div class="stats-bar">
           <div class="stat-item">
             <div class="stat-value">{{ liveCount }}</div>
@@ -52,12 +48,10 @@
       </div>
     </div>
 
-    <!-- ========== FILTER BAR ========== -->
     <div class="card mb-4 filter-card fade-in-up" *ngIf="!isLoading && auctions.length > 0"
          style="animation-delay:0.1s;">
       <div class="card-body p-3 p-md-4">
 
-        <!-- Row 1: Category + Reset -->
         <div class="row g-3 align-items-end mb-3">
           <div class="col-md-5">
             <label class="filter-label">
@@ -70,7 +64,6 @@
             </select>
           </div>
 
-          <!-- Status Chips -->
           <div class="col-md-5">
             <label class="filter-label"><i class="bi bi-funnel me-1"></i>Status</label>
             <div class="d-flex gap-2 flex-wrap">
@@ -94,7 +87,6 @@
           </div>
         </div>
 
-        <!-- Row 2: Price Range -->
         <div>
           <label class="filter-label">
             <i class="bi bi-currency-rupee me-1"></i>Price Range:
@@ -119,7 +111,6 @@
       </div>
     </div>
 
-    <!-- ========== SECTION HEADER ========== -->
     <div class="d-flex align-items-center justify-content-between mb-4 fade-in-up" style="animation-delay:0.15s;">
       <div class="d-flex align-items-center gap-3">
         <h4 class="section-header mb-0 fw-bold">Featured Auctions</h4>
@@ -136,7 +127,6 @@
       </button>
     </div>
 
-    <!-- ========== LOADING STATE ========== -->
     <div class="text-center py-5 fade-in-up" *ngIf="isLoading">
       <div class="loading-ring mb-4">
         <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;"></div>
@@ -145,7 +135,6 @@
       <p class="text-muted small">Connecting to auction servers</p>
     </div>
 
-    <!-- ========== ERROR STATE ========== -->
     <div class="alert alert-danger d-flex align-items-center gap-3 fade-in-up rounded-3"
          *ngIf="errorMessage && !isLoading">
       <i class="bi bi-exclamation-triangle-fill fs-5"></i>
@@ -155,7 +144,6 @@
       </button>
     </div>
 
-    <!-- ========== EMPTY STATE ========== -->
     <div class="text-center py-5 fade-in-up" *ngIf="!isLoading && !errorMessage && filteredAuctions.length === 0">
       <div class="empty-icon mb-4">
         <i class="bi bi-calendar-x" style="font-size:4rem;color:#cbd5e1;"></i>
@@ -171,14 +159,12 @@
       </button>
     </div>
 
-    <!-- ========== AUCTION CARDS GRID ========== -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" *ngIf="!isLoading && filteredAuctions.length > 0">
 
       <div class="col fade-in-up" *ngFor="let auction of filteredAuctions; let i = index"
            [style.animation-delay]="(i * 0.07) + 's'">
         <div class="card h-100 auction-card">
 
-          <!-- ---- Image with overlay ---- -->
           <div class="position-relative card-img-wrapper">
             <img
               [src]="auction.imageUrl || 'assets/no-image.svg'"
@@ -186,16 +172,13 @@
               [alt]="auction.productName"
               (error)="$any($event.target).src='assets/no-image.svg'"
             />
-            <!-- Gradient overlay -->
             <div class="card-img-overlay-gradient"></div>
 
-            <!-- Featured badge top-left -->
             <span class="badge position-absolute top-0 start-0 m-2 featured-badge"
                   *ngIf="auction.isFeatured">
               <i class="bi bi-star-fill me-1"></i>Featured
             </span>
 
-            <!-- Status badge top-right -->
             <span class="badge position-absolute top-0 end-0 m-2 px-3 py-2 status-badge"
                   [ngClass]="{
                     'badge-live': auction.status === 'LIVE',
@@ -208,62 +191,56 @@
               {{ auction.status }}
             </span>
 
-            <!-- Timer on image bottom -->
-            <div class="position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-end">
+            <div class="position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-between align-items-center">
+              <span class="category-chip-overlay">
+                <i class="bi bi-tag-fill me-1"></i>{{ auction.categoryName }}
+              </span>
+              
               <span class="timer-chip"
                     [ngClass]="{
                       'timer-chip-live': auction.status === 'LIVE',
-                      'timer-chip-default': auction.status !== 'LIVE'
+                      'timer-chip-default': auction.status !== 'LIVE',
+                      'text-danger fw-bold blink-timer': getCountdown(auction).includes('s') && !getCountdown(auction).includes('h') && !getCountdown(auction).includes('m')
                     }">
-                <i class="bi me-1" [ngClass]="{'bi-clock-fill': auction.status === 'LIVE', 'bi-clock': auction.status !== 'LIVE'}"></i>
+                <i class="bi me-1" [ngClass]="{'bi-hourglass-split': auction.status === 'LIVE', 'bi-calendar-event': auction.status === 'CREATED'}"></i>
                 {{ getCountdown(auction) }}
               </span>
             </div>
           </div>
 
-          <!-- ---- Card Body ---- -->
           <div class="card-body d-flex flex-column p-3">
 
-            <!-- Category -->
-            <div class="mb-2">
-              <span class="category-chip">
-                <i class="bi bi-tag me-1"></i>{{ auction.categoryName || 'Uncategorized' }}
-              </span>
-            </div>
-
-            <!-- Product Name -->
-            <h5 class="card-title fw-bold mb-1 text-truncate" style="font-size:1rem;">
+            <h5 class="card-title fw-bold mb-1 text-truncate" style="font-size:1.1rem; color: #1e293b;">
               {{ auction.productName }}
             </h5>
 
-            <!-- Description -->
             <p class="card-text text-muted small mb-3 description-clamp">
               {{ auction.description }}
             </p>
 
-            <hr class="my-2 opacity-25"/>
-
-            <!-- Bid Info -->
             <div class="mt-auto">
-              <!-- Current Bid -->
-              <div class="mb-2">
-                <p class="text-muted small mb-0 fw-medium">Current Bid</p>
-                <p class="bid-value fw-bold mb-0"
-                   [class.bid-updated]="isJustUpdated(auction.auctionId)">
-                  {{ formatCurrency(auction.currentBid || auction.startingPrice) }}
+              <div class="d-flex justify-content-between align-items-end mb-3">
+                <div>
+                   <p class="text-muted x-small mb-0">Current Bid</p>
+                   <p class="bid-value fw-bold mb-0" [class.bid-updated]="isJustUpdated(auction.auctionId)">
+                      {{ formatCurrency(auction.currentBid || auction.startingPrice) }}
+                   </p>
+                </div>
+                <div class="text-end">
+                   <p class="text-muted x-small mb-0">Status</p>
+                   <span class="small fw-semibold" [ngClass]="auction.status === 'LIVE' ? 'text-success' : 'text-secondary'">
+                      {{ auction.status }}
+                   </span>
+                </div>
+              </div>
+
+              <div class="leader-info p-2 rounded-2 mb-3" [ngClass]="auction.highestBidder ? 'bg-light-success' : 'bg-light'">
+                <p class="mb-0 x-small text-truncate">
+                  <i class="bi" [ngClass]="auction.highestBidder ? 'bi-person-check-fill text-success' : 'bi-person-dash'"></i>
+                  <span class="ms-1">{{ auction.highestBidder ? 'Leader: ' + auction.highestBidder : 'No bids yet' }}</span>
                 </p>
               </div>
 
-              <!-- Highest Bidder -->
-              <p class="text-muted small mb-3" *ngIf="auction.highestBidder">
-                <i class="bi bi-person-check-fill text-success me-1"></i>
-                Leader: <strong>{{ auction.highestBidder }}</strong>
-              </p>
-              <p class="text-muted small mb-3" *ngIf="!auction.highestBidder">
-                <i class="bi bi-person-plus me-1"></i>No bids yet
-              </p>
-
-              <!-- Action Button -->
               <button *ngIf="role === 'BUYER'"
                       class="btn w-100 fw-bold action-btn"
                       [ngClass]="{
@@ -276,21 +253,26 @@
                 <i class="bi me-2"
                    [ngClass]="{
                      'bi-lightning-fill': auction.status === 'LIVE',
-                     'bi-eye': auction.status === 'CREATED',
-                     'bi-flag-fill': auction.status === 'ENDED'
+                     'bi-eye-fill': auction.status === 'CREATED',
+                     'bi-slash-circle': auction.status === 'ENDED'
                    }"></i>
-                {{ auction.status === 'LIVE' ? 'Bid Now' : auction.status === 'CREATED' ? 'View Auction' : 'Auction Ended' }}
+                {{ auction.status === 'LIVE' ? 'Enter Auction' : auction.status === 'CREATED' ? 'Remind Me' : 'Closed' }}
               </button>
 
-              <div *ngIf="role !== 'BUYER'" class="text-center text-muted small py-2">
-                <i class="bi bi-eye me-1"></i>Viewing as {{ role }}
+              <div *ngIf="role !== 'BUYER'" class="text-center text-muted x-small py-2 border-top">
+                <i class="bi bi-shield-lock me-1"></i>Admin Access Only
               </div>
             </div>
           </div>
         </div>
       </div>
 
-    </div><!-- /cards grid -->
+    </div></div></div>```
 
-  </div><!-- /container -->
-</div><!-- /page-wrapper -->
+### Why these changes work:
+1.  **Overlay Placement:** I placed the timer inside the `card-img-wrapper`. Since you already have `position-relative` and a gradient overlay there, the white timer text will pop beautifully against the image.
+2.  **Dynamic Iconry:** In the timer chip, I switched the icon to `bi-hourglass-split` for LIVE auctions to give a sense of urgency, and `bi-calendar-event` for upcoming ones.
+3.  **Blink Effect:** I added a logic check: if the countdown contains only seconds (meaning less than a minute left), it adds a `blink-timer` class. This is great for drawing the user's eye to auctions that are about to close.
+4.  **Monospaced Styling:** (Optional but recommended) In your CSS, make sure the `.timer-chip` uses a monospaced font so the numbers don't "jump" when they change.
+
+This HTML perfectly matches the TS file we updated earlier. Are you ready to see the CSS to make that "blink" and "overlay" look professional?

@@ -11,6 +11,12 @@ export interface Auction {
   endTime: string | null;
   status: AuctionStatus;
   isFeatured: boolean;
+  remainingTime?: {
+    hours: number;
+    minutes: number;
+    seconds: number;
+    isExpired: boolean;
+  };
 }
 
 export interface AuctionCard {

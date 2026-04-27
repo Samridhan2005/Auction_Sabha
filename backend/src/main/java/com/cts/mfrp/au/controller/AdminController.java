@@ -28,7 +28,6 @@ public class AdminController {
     public AdminController() {
     }
 
-
     @PostMapping("/{auctionId}/start")
     public ResponseEntity<String> startAuction(@PathVariable int auctionId) throws Exception {
         double price=auctionService.getDefaultPrice(auctionId);
