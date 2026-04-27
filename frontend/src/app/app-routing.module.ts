@@ -11,15 +11,24 @@ import { ProductSubmitComponent } from './components/product-submit/product-subm
 import { AdminComponent } from './components/admin/admin.component';
 import { WalletComponent } from './components/wallet/wallet.component';
 import { VerifierComponent } from './components/verifier/verifier.component';
+// Import the new components
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ChangePasswordComponent } from './components/change-password/change-password.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
+  { path: 'forgot-password', component: ForgotPasswordComponent }, // Public route
   {
     path: 'home',
     component: HomeComponent,
     canActivate: [AuthGuard]
+  },
+  {
+    path: 'change-password',
+    component: ChangePasswordComponent,
+    canActivate: [AuthGuard] // Protected route
   },
   {
     path: 'auction/:id',

@@ -1,7 +1,6 @@
 <nav class="navbar navbar-expand-lg navbar-custom">
   <div class="container">
-
-    <!-- Brand -->
+    
     <a class="navbar-brand brand-logo d-flex align-items-center gap-2" routerLink="/home">
       <div class="brand-icon-wrap">
         <i class="bi bi-hammer brand-hammer"></i>
@@ -9,20 +8,17 @@
       <span class="brand-text">Auction Sabha</span>
     </a>
 
-    <!-- Mobile Toggler -->
-    <button class="navbar-toggler" type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#mainNav"
-            aria-controls="mainNav"
-            aria-expanded="false"
+    <button class="navbar-toggler" type="button" 
+            data-bs-toggle="collapse" 
+            data-bs-target="#mainNav" 
+            aria-controls="mainNav" 
+            aria-expanded="false" 
             aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <!-- Links -->
     <div class="collapse navbar-collapse" id="mainNav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-
         <li class="nav-item">
           <a class="nav-link nav-link-custom" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">
             <i class="bi bi-house-door me-1"></i>Home
@@ -35,38 +31,19 @@
           </a>
         </li>
 
-        <li class="nav-item" *ngIf="role === 'SELLER'">
-          <a class="nav-link nav-link-custom" routerLink="/submit-product" routerLinkActive="active">
-            <i class="bi bi-plus-circle me-1"></i>Submit Product
-          </a>
-        </li>
-
-        <li class="nav-item" *ngIf="role === 'ADMIN'">
-          <a class="nav-link nav-link-custom" routerLink="/admin" routerLinkActive="active">
-            <i class="bi bi-shield-check me-1"></i>Admin
-          </a>
-        </li>
-
-        <li class="nav-item" *ngIf="role === 'VERIFIER'">
-          <a class="nav-link nav-link-custom" routerLink="/verifier" routerLinkActive="active">
-            <i class="bi bi-clipboard-check me-1"></i>Verify Products
-          </a>
-        </li>
-
         <li class="nav-item">
           <a class="nav-link nav-link-custom" routerLink="/wallet" routerLinkActive="active">
             <i class="bi bi-wallet2 me-1"></i>Wallet
           </a>
         </li>
-
       </ul>
 
-      <!-- Right: User info -->
       <ul class="navbar-nav align-items-center gap-2">
-
-        <!-- Role Badge -->
+        
         <li class="nav-item">
-          <span class="role-badge"
+          <span class="role-badge" 
+                (click)="toggleProfile()" 
+                style="cursor: pointer;"
                 [ngClass]="{
                   'role-buyer':    role === 'BUYER',
                   'role-seller':   role === 'SELLER',
@@ -84,14 +61,13 @@
           </span>
         </li>
 
-        <!-- Email -->
         <li class="nav-item d-none d-lg-block">
-          <span class="user-chip">
-            <i class="bi bi-person-circle me-1"></i>{{ email }}
+          <span class="user-chip" style="cursor: pointer;">
+            <i class="bi bi-person-circle me-1"></i>
+            {{ userName }}
           </span>
         </li>
 
-        <!-- Logout -->
         <li class="nav-item">
           <button class="btn btn-outline-light btn-sm logout-btn fw-semibold" (click)="logout()">
             <i class="bi bi-box-arrow-right me-1"></i>Logout
@@ -102,3 +78,8 @@
     </div>
   </div>
 </nav>
+
+<app-profile 
+  *ngIf="isProfileVisible" 
+  (closeRequested)="isProfileVisible = false">
+</app-profile>
