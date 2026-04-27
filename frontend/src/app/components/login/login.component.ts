@@ -11,9 +11,12 @@ import { AuthService } from '../../services/auth.service';
 export class LoginComponent implements OnInit {
   loginForm!: FormGroup;
   isLoading = false;
-  errorMessage = '';
   showPassword = false;
   rememberMe = false;
+  
+  // These properties must exist for the template to compile
+  errorMessage = ''; 
+  successMessage = ''; 
 
   constructor(
     private fb: FormBuilder,
@@ -22,15 +25,8 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    if (this.authService.isLoggedIn()) {
-      void this.router.navigate(['/home']);
-      return;
-    }
-
-    const savedEmail = localStorage.getItem('remembered_email') || '';
-    this.rememberMe = !!savedEmail;
     this.loginForm = this.fb.group({
-      email: [savedEmail, [Validators.required, Validators.email]],
+      email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
   }
@@ -38,41 +34,23 @@ export class LoginComponent implements OnInit {
   get emailControl() { return this.loginForm.get('email'); }
   get passwordControl() { return this.loginForm.get('password'); }
 
-  onSubmit(): void {
-    if (this.loginForm.invalid) {
-      this.loginForm.markAllAsTouched();
-      return;
-    }
+  togglePassword() { this.showPassword = !this.showPassword; }
 
+  onSubmit(): void {
+    if (this.loginForm.invalid) return;
     this.isLoading = true;
     this.errorMessage = '';
-
-    const email = this.loginForm.value.email as string;
-    if (this.rememberMe) {
-      localStorage.setItem('remembered_email', email);
-    } else {
-      localStorage.removeItem('remembered_email');
-    }
+    this.successMessage = '';
 
     this.authService.login(this.loginForm.value).subscribe({
       next: () => {
         this.isLoading = false;
-        void this.router.navigate(['/home']);
+        this.router.navigate(['/home']);
       },
-      error: (err: { status: number; error?: { message?: string } }) => {
+      error: (err) => {
         this.isLoading = false;
-        if (err.status === 401 || err.status === 403) {
-          this.errorMessage = 'Invalid email or password. Please try again.';
-        } else if (err.status === 0) {
-          this.errorMessage = 'Cannot connect to server. Please try again later.';
-        } else {
-          this.errorMessage = err.error?.message || 'Login failed. Please try again.';
-        }
+        this.errorMessage = 'Invalid email or password.';
       }
     });
-  }
-
-  togglePassword(): void {
-    this.showPassword = !this.showPassword;
   }
 }

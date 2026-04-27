@@ -1,17 +1,15 @@
 <div class="page-wrapper">
-  <div class="container">
+  <div class="container py-4">
     <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <!-- Page Title -->
+      <div class="col-lg-10">
         <div class="d-flex align-items-center mb-4">
           <i class="bi bi-plus-circle-fill text-primary fs-3 me-3"></i>
           <div>
             <h3 class="fw-bold mb-0">Submit a Product</h3>
-            <p class="text-muted mb-0 small">Your product will be reviewed by an admin before listing.</p>
+            <p class="text-muted mb-0 small">Your product and documents will be reviewed by an admin.</p>
           </div>
         </div>
 
-        <!-- Alerts -->
         <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage">
           <i class="bi bi-exclamation-triangle-fill"></i>
           <span>{{ errorMessage }}</span>
@@ -22,197 +20,122 @@
         </div>
 
         <div class="row g-4">
-          <!-- Form -->
           <div class="col-md-7">
-            <div class="card p-4">
+            <div class="card p-4 shadow-sm">
               <form [formGroup]="submitForm" (ngSubmit)="onSubmit()" novalidate>
-                <!-- Product Name -->
+                
                 <div class="mb-3">
                   <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    formControlName="productName"
-                    placeholder="e.g., Vintage Rolex Submariner"
-                    [class.is-invalid]="productNameCtrl?.invalid && productNameCtrl?.touched"
-                  />
+                  <input type="text" class="form-control" formControlName="productName" 
+                         placeholder="e.g., Vintage Rolex Submariner"
+                         [class.is-invalid]="productNameCtrl?.invalid && productNameCtrl?.touched" />
                   <div class="invalid-feedback">
                     <span *ngIf="productNameCtrl?.errors?.['required']">Product name is required.</span>
-                    <span *ngIf="productNameCtrl?.errors?.['minlength']">At least 3 characters required.</span>
-                    <span *ngIf="productNameCtrl?.errors?.['maxlength']">Max 100 characters allowed.</span>
+                    <span *ngIf="productNameCtrl?.errors?.['minlength']">At least 3 characters.</span>
                   </div>
                 </div>
 
-                <!-- Description -->
                 <div class="mb-3">
                   <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
-                  <textarea
-                    class="form-control"
-                    formControlName="description"
-                    rows="4"
-                    placeholder="Describe your product in detail..."
-                    [class.is-invalid]="descriptionCtrl?.invalid && descriptionCtrl?.touched"
-                  ></textarea>
-                  <div class="invalid-feedback">
-                    <span *ngIf="descriptionCtrl?.errors?.['required']">Description is required.</span>
-                    <span *ngIf="descriptionCtrl?.errors?.['minlength']">At least 10 characters required.</span>
-                    <span *ngIf="descriptionCtrl?.errors?.['maxlength']">Max 500 characters allowed.</span>
-                  </div>
+                  <textarea class="form-control" formControlName="description" rows="3"
+                            [class.is-invalid]="descriptionCtrl?.invalid && descriptionCtrl?.touched"></textarea>
+                  <div class="invalid-feedback">Description (10-500 chars) is required.</div>
                   <small class="text-muted">{{ descriptionCtrl?.value?.length || 0 }}/500</small>
                 </div>
 
-                <!-- Image URL -->
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Starting Price (₹) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" formControlName="startingPrice" 
+                           [class.is-invalid]="startingPriceCtrl?.invalid && startingPriceCtrl?.touched" />
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                    <select class="form-select" formControlName="categoryId" 
+                            [class.is-invalid]="categoryIdCtrl?.invalid && categoryIdCtrl?.touched">
+                      <option [ngValue]="null" disabled>-- Select --</option>
+                      <option *ngFor="let cat of categories" [ngValue]="cat.categoryId">{{ cat.categoryName }}</option>
+                    </select>
+                  </div>
+                </div>
+
                 <div class="mb-3">
                   <label class="form-label fw-semibold">Image URL <span class="text-danger">*</span></label>
-                  <input
-                    type="url"
-                    class="form-control"
-                    formControlName="imageUrl"
-                    placeholder="https://example.com/image.jpg"
-                    [class.is-invalid]="imageUrlCtrl?.invalid && imageUrlCtrl?.touched"
-                  />
-                  <div class="invalid-feedback">
-                    <span *ngIf="imageUrlCtrl?.errors?.['required']">Image URL is required.</span>
-                    <span *ngIf="imageUrlCtrl?.errors?.['pattern']">Must be a valid HTTP/HTTPS URL.</span>
-                  </div>
+                  <input type="url" class="form-control" formControlName="imageUrl" placeholder="https://..."
+                         [class.is-invalid]="imageUrlCtrl?.invalid && imageUrlCtrl?.touched" />
                 </div>
 
-                <!-- Starting Price -->
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Starting Price (&#x20B9;) <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold">Upload Verification Document <span class="text-danger">*</span></label>
                   <div class="input-group">
-                    <span class="input-group-text fw-bold">&#x20B9;</span>
-                    <input
-                      type="number"
-                      class="form-control"
-                      formControlName="startingPrice"
-                      placeholder="e.g., 5000"
-                      min="1"
-                      [class.is-invalid]="startingPriceCtrl?.invalid && startingPriceCtrl?.touched"
-                    />
-                    <div class="invalid-feedback">
-                      <span *ngIf="startingPriceCtrl?.errors?.['required']">Starting price is required.</span>
-                      <span *ngIf="startingPriceCtrl?.errors?.['min']">Price must be at least ₹1.</span>
-                    </div>
+                    <input type="file" class="form-control" id="docUpload" (change)="onFileChange($event)"
+                           [class.is-invalid]="verificationDocCtrl?.invalid && verificationDocCtrl?.touched" />
+                    <label class="input-group-text" for="docUpload"><i class="bi bi-upload"></i></label>
+                  </div>
+                  <small class="text-muted">Upload ID proof or authenticity certificates (All formats accepted).</small>
+                  <div class="text-danger small mt-1" *ngIf="verificationDocCtrl?.invalid && verificationDocCtrl?.touched">
+                    Verification document is mandatory.
                   </div>
                 </div>
 
-                <!-- Category -->
-                <div class="mb-4">
-                  <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                  <select
-                    class="form-select"
-                    formControlName="categoryId"
-                    [class.is-invalid]="categoryIdCtrl?.invalid && categoryIdCtrl?.touched"
-                  >
-                    <option [ngValue]="null" disabled>-- Select a category --</option>
-                    <option *ngFor="let cat of categories" [ngValue]="cat.categoryId">
-                      {{ cat.categoryName }}
-                    </option>
-                  </select>
-                  <div class="invalid-feedback">Please select a category.</div>
-                </div>
-
-                <!-- Auction Start Date -->
-                <div class="mb-3">
-                  <label class="form-label fw-semibold">Auction Start Date & Time <span class="text-danger">*</span></label>
-                  <input
-                    type="datetime-local"
-                    class="form-control"
-                    formControlName="auctionStartDate"
-                    [class.is-invalid]="auctionStartDateCtrl?.invalid && auctionStartDateCtrl?.touched"
-                  />
-                  <div class="invalid-feedback">Please select a valid future start date.</div>
-                </div>
-
-                <!-- Auction End Date -->
-                <div class="mb-3">
-                  <label class="form-label fw-semibold">Auction End Date & Time <span class="text-danger">*</span></label>
-                  <input
-                    type="datetime-local"
-                    class="form-control"
-                    formControlName="auctionEndDate"
-                    [class.is-invalid]="auctionEndDateCtrl?.invalid && auctionEndDateCtrl?.touched"
-                  />
-                  <div class="invalid-feedback">End date must be after the start date.</div>
-                  <div class="text-danger small mt-1" *ngIf="submitForm.errors?.['startInPast'] && auctionStartDateCtrl?.touched">
-                    Start date cannot be in the past.
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold small">Start Date <span class="text-danger">*</span></label>
+                    <input type="datetime-local" class="form-control" formControlName="auctionStartDate" />
                   </div>
-                  <div class="text-danger small mt-1" *ngIf="submitForm.errors?.['endBeforeStart'] && auctionEndDateCtrl?.touched">
-                    End date must be after the start date.
+                  <div class="col-md-6 mb-3">
+                    <label class="form-label fw-semibold small">End Date <span class="text-danger">*</span></label>
+                    <input type="datetime-local" class="form-control" formControlName="auctionEndDate" />
                   </div>
                 </div>
 
-                <!-- Confirmation Checkbox -->
                 <div class="mb-4 p-3 border rounded bg-light">
                   <div class="form-check">
-                    <input
-                      class="form-check-input"
-                      type="checkbox"
-                      id="termsAccepted"
-                      formControlName="termsAccepted"
-                      [class.is-invalid]="termsAcceptedCtrl?.invalid && termsAcceptedCtrl?.touched"
-                    />
+                    <input class="form-check-input" type="checkbox" id="termsAccepted" formControlName="termsAccepted" />
                     <label class="form-check-label small" for="termsAccepted">
-                      I confirm that the information provided is accurate, I have the right to sell this item, and I agree to the
-                      <a href="#" class="text-primary" (click)="$event.preventDefault()">Terms of Service</a> and
-                      <a href="#" class="text-primary" (click)="$event.preventDefault()">Seller Agreement</a>.
+                      I confirm the info is accurate and I own the rights to sell this item.
                     </label>
-                    <div class="invalid-feedback">You must accept the terms to submit.</div>
                   </div>
                 </div>
 
-                <!-- Submit -->
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" [disabled]="isLoading">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" [disabled]="isLoading">
                   <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2"></span>
-                  <i *ngIf="!isLoading" class="bi bi-send me-2"></i>
                   {{ isLoading ? 'Submitting...' : 'Submit for Review' }}
                 </button>
               </form>
             </div>
           </div>
 
-          <!-- Preview Panel -->
           <div class="col-md-5">
-            <div class="card p-3 h-100">
-              <h6 class="fw-bold mb-3 text-muted text-uppercase small">
-                <i class="bi bi-eye me-2"></i>Preview
-              </h6>
-
-              <!-- Image Preview -->
-              <div class="preview-image-wrapper mb-3">
-                <img
-                  *ngIf="imagePreviewUrl"
-                  [src]="imagePreviewUrl"
-                  class="img-fluid rounded"
-                  alt="Preview"
-                  style="height: 160px; width: 100%; object-fit: cover;"
-                  (error)="$any($event.target).src = 'assets/no-image.svg'"
-                />
-                <div
-                  *ngIf="!imagePreviewUrl"
-                  class="bg-light rounded d-flex align-items-center justify-content-center"
-                  style="height: 160px;">
+            <div class="card p-3 h-100 sticky-top" style="top: 20px; z-index: 1;">
+              <h6 class="fw-bold mb-3 text-muted text-uppercase small">Live Preview</h6>
+              <div class="preview-image-wrapper mb-3 border">
+                <img *ngIf="imagePreviewUrl" [src]="imagePreviewUrl" class="img-fluid rounded" alt="Preview"
+                     style="height: 200px; width: 100%; object-fit: cover;"
+                     (error)="$any($event.target).src = 'assets/no-image.svg'" />
+                <div *ngIf="!imagePreviewUrl" class="bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
                   <i class="bi bi-image text-muted display-4"></i>
                 </div>
               </div>
-
-              <p class="fw-bold mb-1">{{ productNameCtrl?.value || 'Product Name' }}</p>
-              <p class="text-muted small mb-2">{{ descriptionCtrl?.value || 'Product description will appear here.' }}</p>
-
-              <div class="d-flex justify-content-between align-items-center mt-auto">
-                <div>
-                  <p class="text-muted small mb-0">Starting Price</p>
-                  <p class="fw-bold text-primary mb-0">
-                    ₹{{ startingPriceCtrl?.value || '0' | number }}
-                  </p>
+              <h5 class="fw-bold mb-1">{{ productNameCtrl?.value || 'Product Name' }}</h5>
+              <p class="text-muted small mb-3 text-truncate-3">{{ descriptionCtrl?.value || 'Description will appear here.' }}</p>
+              
+              <div class="border-top pt-3 mt-auto">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">Starting Price:</span>
+                  <span class="fw-bold text-primary">₹{{ startingPriceCtrl?.value || 0 | number }}</span>
                 </div>
-                <span class="badge bg-warning text-dark">PENDING</span>
+                <div class="d-flex justify-content-between mt-1">
+                  <span class="text-muted">Document:</span>
+                  <span class="text-success small fw-bold" *ngIf="verificationDocCtrl?.value">
+                    <i class="bi bi-file-earmark-check"></i> Attached
+                  </span>
+                  <span class="text-danger small" *ngIf="!verificationDocCtrl?.value">Missing</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   </div>

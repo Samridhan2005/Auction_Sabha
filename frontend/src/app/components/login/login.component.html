@@ -1,9 +1,6 @@
-<!-- Split-screen Login Layout -->
 <div class="login-wrapper">
 
-  <!-- ===== LEFT BRAND SIDE ===== -->
   <div class="login-brand-side d-none d-lg-flex">
-    <!-- Top: Logo + Tagline -->
     <div class="brand-top">
       <div class="d-flex align-items-center gap-3 mb-4">
         <div class="brand-icon">
@@ -20,7 +17,6 @@
         <span class="brand-accent">Real-Time.</span>
       </h3>
 
-      <!-- Feature bullets -->
       <div class="feature-list">
         <div class="feature-item">
           <div class="feature-check"><i class="bi bi-check-lg"></i></div>
@@ -46,7 +42,6 @@
       </div>
     </div>
 
-    <!-- Bottom: Testimonial -->
     <div class="brand-testimonial">
       <div class="testimonial-quote">
         <i class="bi bi-quote" style="font-size:1.5rem;opacity:0.4;"></i>
@@ -64,32 +59,31 @@
     </div>
   </div>
 
-  <!-- ===== RIGHT FORM SIDE ===== -->
   <div class="login-form-side">
     <div class="login-form-inner">
 
-      <!-- Mobile: show brand logo -->
       <div class="text-center mb-4 d-lg-none">
         <i class="bi bi-hammer" style="font-size:2.5rem;color:var(--primary-light);"></i>
         <h3 class="fw-black mt-2 mb-0">Auction Sabha</h3>
       </div>
 
-      <!-- Heading -->
       <div class="mb-5">
         <h2 class="form-heading fw-black mb-1">Welcome Back</h2>
         <p class="text-muted">Sign in to access your auction dashboard.</p>
       </div>
 
-      <!-- Error Alert -->
+      <div class="alert alert-success d-flex align-items-center gap-2 rounded-3" *ngIf="successMessage">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+        <span>{{ successMessage }}</span>
+      </div>
+
       <div class="alert alert-danger d-flex align-items-center gap-2 rounded-3" *ngIf="errorMessage">
         <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- Login Form -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
 
-        <!-- Email -->
         <div class="mb-4">
           <label for="email" class="form-field-label">Email Address</label>
           <div class="input-group input-group-custom">
@@ -109,7 +103,6 @@
           </div>
         </div>
 
-        <!-- Password -->
         <div class="mb-3">
           <label for="password" class="form-field-label">Password</label>
           <div class="input-group input-group-custom">
@@ -132,18 +125,17 @@
           </div>
         </div>
 
-        <!-- Remember Me + Forgot -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="rememberMe"
                    [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" />
             <label class="form-check-label small text-muted" for="rememberMe">Remember me</label>
           </div>
-          <a href="#" class="small fw-semibold text-decoration-none forgot-link"
-             (click)="$event.preventDefault()">Forgot password?</a>
+          <a routerLink="/forgot-password" class="small fw-semibold text-decoration-none forgot-link">
+            Forgot password?
+          </a>
         </div>
 
-        <!-- Submit -->
         <button type="submit" class="btn sign-in-btn w-100 fw-bold py-3 mb-4" [disabled]="isLoading">
           <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
           <i *ngIf="!isLoading" class="bi bi-box-arrow-in-right me-2"></i>
@@ -152,12 +144,10 @@
 
       </form>
 
-      <!-- Divider -->
       <div class="form-divider mb-4">
         <span>or</span>
       </div>
 
-      <!-- Register Link -->
       <div class="text-center">
         <p class="text-muted mb-0">
           Don't have an account?

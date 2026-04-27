@@ -15,7 +15,6 @@ export class ProductSubmitComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
-
   categories: Category[] = [];
 
   constructor(
@@ -28,7 +27,7 @@ export class ProductSubmitComponent implements OnInit {
   ngOnInit(): void {
     this.productService.getCategories().subscribe({
       next: (cats) => { this.categories = cats; },
-      error: () => { this.errorMessage = 'Could not load categories. Please refresh.'; }
+      error: () => { this.errorMessage = 'Could not load categories.'; }
     });
 
     this.submitForm = this.fb.group({
@@ -39,27 +38,38 @@ export class ProductSubmitComponent implements OnInit {
       categoryId: [null, [Validators.required]],
       auctionStartDate: ['', [Validators.required]],
       auctionEndDate: ['', [Validators.required]],
-      termsAccepted: [false, [Validators.requiredTrue]]
+      termsAccepted: [false, [Validators.requiredTrue]],
+      verificationDoc: [null, [Validators.required]] // Mandatory File
     }, { validators: this.dateRangeValidator });
   }
 
+  // Handle File selection
+  onFileChange(event: any): void {
+    if (event.target.files.length > 0) {
+      const file = event.target.files[0];
+      this.submitForm.patchValue({
+        verificationDoc: file
+      });
+      this.submitForm.get('verificationDoc')?.updateValueAndValidity();
+    }
+  }
+
   dateRangeValidator(group: AbstractControl): ValidationErrors | null {
-    const start = group.get('auctionStartDate')?.value as string;
-    const end = group.get('auctionEndDate')?.value as string;
+    const start = group.get('auctionStartDate')?.value;
+    const end = group.get('auctionEndDate')?.value;
     if (!start || !end) return null;
     if (new Date(start) < new Date()) return { startInPast: true };
     if (new Date(end) <= new Date(start)) return { endBeforeStart: true };
     return null;
   }
 
+  // Getters for template
   get productNameCtrl() { return this.submitForm.get('productName'); }
   get descriptionCtrl() { return this.submitForm.get('description'); }
   get imageUrlCtrl() { return this.submitForm.get('imageUrl'); }
   get startingPriceCtrl() { return this.submitForm.get('startingPrice'); }
   get categoryIdCtrl() { return this.submitForm.get('categoryId'); }
-  get auctionStartDateCtrl() { return this.submitForm.get('auctionStartDate'); }
-  get auctionEndDateCtrl() { return this.submitForm.get('auctionEndDate'); }
-  get termsAcceptedCtrl() { return this.submitForm.get('termsAccepted'); }
+  get verificationDocCtrl() { return this.submitForm.get('verificationDoc'); }
 
   onSubmit(): void {
     if (this.submitForm.invalid) {
@@ -69,50 +79,39 @@ export class ProductSubmitComponent implements OnInit {
 
     const sellerId = this.authService.getUserId();
     if (!sellerId) {
-      this.errorMessage = 'Seller ID not found. Please set your User ID in the Wallet page first.';
+      this.errorMessage = 'Seller ID not found. Please login.';
       return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
-    this.successMessage = '';
+    
+    // Preparation for API (Using FormData to handle File + Text)
+    const formData = new FormData();
+    formData.append('sellerId', sellerId.toString());
+    formData.append('productName', this.submitForm.value.productName);
+    formData.append('description', this.submitForm.value.description);
+    formData.append('imageUrl', this.submitForm.value.imageUrl);
+    formData.append('startingPrice', this.submitForm.value.startingPrice);
+    formData.append('categoryId', this.submitForm.value.categoryId);
+    formData.append('verificationDoc', this.submitForm.value.verificationDoc);
 
-    const formVal = this.submitForm.value as {
-      productName: string;
-      description: string;
-      imageUrl: string;
-      startingPrice: number;
-      categoryId: number;
-    };
-
-    this.productService.submitProduct(sellerId, {
-      productName: formVal.productName,
-      description: formVal.description,
-      imageUrl: formVal.imageUrl,
-      startingPrice: formVal.startingPrice,
-      categoryId: formVal.categoryId
-    }).subscribe({
+    this.productService.submitProduct(sellerId, this.submitForm.value).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Product submitted for review! Your item will be reviewed by our team within 24–48 hours.';
+        this.successMessage = 'Product and Documents submitted for review!';
         this.submitForm.reset();
         setTimeout(() => void this.router.navigate(['/products']), 2500);
       },
-      error: (err: { status: number; error?: { message?: string } }) => {
+      error: (err) => {
         this.isLoading = false;
-        if (err.status === 0) {
-          this.errorMessage = 'Cannot connect to server. Please try again later.';
-        } else if (err.status === 403) {
-          this.errorMessage = 'You are not authorized to submit products.';
-        } else {
-          this.errorMessage = err.error?.message || 'Failed to submit product. Please try again.';
-        }
+        this.errorMessage = err.error?.message || 'Submission failed.';
       }
     });
   }
 
   get imagePreviewUrl(): string {
-    const val = this.imageUrlCtrl?.value as string;
+    const val = this.imageUrlCtrl?.value;
     return val && /^https?:\/\/.+/.test(val) ? val : '';
   }
 }

@@ -14,6 +14,8 @@ export class AuthService {
 
   constructor(private http: HttpClient) {}
 
+  // --- Existing Authentication Methods ---
+
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(`${this.baseUrl}/login`, credentials).pipe(
       tap(response => {
@@ -45,6 +47,38 @@ export class AuthService {
     localStorage.removeItem(this.USER_ID_KEY);
     localStorage.removeItem(this.EMAIL_KEY);
   }
+
+  // --- New Password Management Methods ---
+
+  /**
+   * Triggers a password reset email from the backend.
+   * Expects the backend to handle the email sending logic.
+   */
+  forgotPassword(email: string): Observable<string> {
+    return this.http.post(`${this.baseUrl}/forgot-password`, { email }, { responseType: 'text' });
+  }
+
+  /**
+   * Submits the new password using the token received in the user's email.
+   */
+  resetPassword(token: string, newPassword: string): Observable<string> {
+    return this.http.post(`${this.baseUrl}/reset-password`, { token, newPassword }, { responseType: 'text' });
+  }
+
+  /**
+   * Updates the password for a user who is already logged in.
+   * Uses the stored userId to identify the account.
+   */
+  changePassword(oldPassword: string, newPassword: string): Observable<string> {
+    const userId = this.getUserId();
+    return this.http.post(`${this.baseUrl}/change-password`, { 
+      userId, 
+      oldPassword, 
+      newPassword 
+    }, { responseType: 'text' });
+  }
+
+  // --- Helper Methods ---
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
