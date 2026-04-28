@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="head-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24"/>
+      <stop offset="100%" stop-color="#d97706"/>
+    </linearGradient>
+    <linearGradient id="handle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d97706"/>
+      <stop offset="100%" stop-color="#92400e"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+
+  <!-- Subtle inner highlight at top -->
+  <rect width="32" height="16" rx="8" fill="white" opacity="0.04"/>
+
+  <!-- Gavel rotated 45° (head upper-right, handle lower-left) -->
+  <g transform="rotate(45, 16, 16)">
+    <!-- Gavel head -->
+    <rect x="9" y="5" width="14" height="8" rx="2.5" fill="url(#head-grad)"/>
+    <!-- Thin shine line on top of head -->
+    <rect x="10" y="6" width="12" height="1.5" rx="0.75" fill="white" opacity="0.25"/>
+    <!-- Gavel handle -->
+    <rect x="14" y="13" width="4" height="15" rx="2" fill="url(#handle-grad)"/>
+  </g>
+</svg>

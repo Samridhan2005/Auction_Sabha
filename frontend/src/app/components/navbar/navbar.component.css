@@ -1,40 +1,68 @@
 /* ============================================================
-   Navbar Component — Premium Dark Navy
+   Navbar Component — Glassmorphism Premium v2
    ============================================================ */
 
 /* ---------- Navbar Base ---------- */
 .navbar-custom {
-  background: var(--primary) !important;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+  background: rgba(10, 18, 35, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06);
   min-height: 64px;
   padding-top: 0;
   padding-bottom: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
 /* ---------- Brand ---------- */
 .brand-logo {
   text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.brand-logo:hover {
+  opacity: 0.92;
 }
 
 .brand-icon-wrap {
-  width: 36px;
-  height: 36px;
-  background: rgba(245,158,11,0.15);
-  border: 1.5px solid rgba(245,158,11,0.4);
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  background: rgba(245,158,11,0.14);
+  border: 1.5px solid rgba(245,158,11,0.38);
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.brand-icon-wrap:hover {
-  background: rgba(245,158,11,0.25);
+.brand-icon-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 0%, rgba(245,158,11,0.2), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.brand-logo:hover .brand-icon-wrap {
+  background: rgba(245,158,11,0.22);
+  border-color: rgba(245,158,11,0.6);
+  box-shadow: 0 0 16px rgba(245,158,11,0.3);
+  transform: rotate(-8deg) scale(1.06);
+}
+
+.brand-logo:hover .brand-icon-wrap::after {
+  opacity: 1;
 }
 
 .brand-hammer {
   color: #f59e0b;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  filter: drop-shadow(0 0 4px rgba(245,158,11,0.3));
 }
 
 .brand-text {
@@ -42,14 +70,15 @@
   font-weight: 800;
   color: white;
   letter-spacing: -0.3px;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
 
 /* ---------- Nav Links ---------- */
 .nav-link-custom {
-  color: rgba(255,255,255,0.82) !important;
+  color: rgba(255,255,255,0.75) !important;
   font-weight: 500;
-  font-size: 0.92rem;
-  padding: 1.1rem 0.85rem !important;
+  font-size: 0.91rem;
+  padding: 1.1rem 0.9rem !important;
   position: relative;
   transition: color 0.2s ease;
   white-space: nowrap;
@@ -62,9 +91,10 @@
   left: 50%;
   right: 50%;
   height: 2px;
-  background: #f59e0b;
+  background: #0bb4aa;
   border-radius: 2px 2px 0 0;
-  transition: left 0.25s ease, right 0.25s ease;
+  transition: left 0.25s cubic-bezier(0.4,0,0.2,1),
+              right 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 
 .nav-link-custom:hover,
@@ -74,52 +104,83 @@
 
 .nav-link-custom:hover::after,
 .nav-link-custom.active::after {
-  left: 0.85rem;
-  right: 0.85rem;
+  left: 0.9rem;
+  right: 0.9rem;
 }
 
 /* ---------- Role Badge ---------- */
 .role-badge {
   display: inline-flex;
   align-items: center;
-  padding: 4px 12px;
+  padding: 5px 13px;
   border-radius: 100px;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.4px;
   white-space: nowrap;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.role-badge:hover {
+  transform: translateY(-1px);
 }
 
 .role-buyer {
-  background: rgba(245,158,11,0.18);
+  background: rgba(245,158,11,0.14);
   color: #fbbf24;
-  border: 1px solid rgba(245,158,11,0.35);
+  border: 1px solid rgba(245,158,11,0.3);
+  box-shadow: 0 0 10px rgba(245,158,11,0.15);
+}
+
+.role-buyer:hover {
+  box-shadow: 0 0 16px rgba(245,158,11,0.35);
+  border-color: rgba(245,158,11,0.5);
 }
 
 .role-seller {
-  background: rgba(6,182,212,0.15);
+  background: rgba(6,182,212,0.13);
   color: #67e8f9;
-  border: 1px solid rgba(6,182,212,0.3);
+  border: 1px solid rgba(6,182,212,0.28);
+  box-shadow: 0 0 10px rgba(6,182,212,0.12);
+}
+
+.role-seller:hover {
+  box-shadow: 0 0 16px rgba(6,182,212,0.3);
+  border-color: rgba(6,182,212,0.48);
 }
 
 .role-admin {
-  background: rgba(239,68,68,0.15);
+  background: rgba(239,68,68,0.13);
   color: #fca5a5;
-  border: 1px solid rgba(239,68,68,0.3);
+  border: 1px solid rgba(239,68,68,0.28);
+  box-shadow: 0 0 10px rgba(239,68,68,0.12);
+}
+
+.role-admin:hover {
+  box-shadow: 0 0 16px rgba(239,68,68,0.3);
+  border-color: rgba(239,68,68,0.48);
 }
 
 .role-verifier {
-  background: rgba(16,185,129,0.15);
+  background: rgba(16,185,129,0.13);
   color: #6ee7b7;
-  border: 1px solid rgba(16,185,129,0.3);
+  border: 1px solid rgba(16,185,129,0.28);
+  box-shadow: 0 0 10px rgba(16,185,129,0.12);
+}
+
+.role-verifier:hover {
+  box-shadow: 0 0 16px rgba(16,185,129,0.3);
+  border-color: rgba(16,185,129,0.48);
 }
 
 /* ---------- User Chip ---------- */
 .user-chip {
-  background: rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 100px;
-  padding: 4px 14px;
-  color: rgba(255,255,255,0.8);
+  padding: 5px 14px;
+  color: rgba(255,255,255,0.82);
   font-size: 0.82rem;
   font-weight: 500;
   max-width: 200px;
@@ -128,27 +189,106 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: middle;
+  transition: all 0.2s ease;
+}
+
+.user-chip:hover {
+  background: rgba(255,255,255,0.1);
+  color: white;
+  border-color: rgba(255,255,255,0.2);
 }
 
 /* ---------- Logout Button ---------- */
 .logout-btn {
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 0.82rem;
   padding: 5px 14px;
-  border-color: rgba(255,255,255,0.3) !important;
-  color: rgba(255,255,255,0.9) !important;
+  border-color: rgba(255,255,255,0.22) !important;
+  color: rgba(255,255,255,0.85) !important;
   transition: all 0.2s ease;
 }
 
 .logout-btn:hover {
-  background: rgba(255,255,255,0.1) !important;
-  border-color: rgba(255,255,255,0.6) !important;
-  color: white !important;
+  background: rgba(239,68,68,0.15) !important;
+  border-color: rgba(239,68,68,0.5) !important;
+  color: #fca5a5 !important;
+  box-shadow: 0 0 12px rgba(239,68,68,0.2);
+}
+
+/* ---------- Nav Search ---------- */
+.nav-search-form {
+  flex: 1;
+  max-width: 340px;
+  min-width: 180px;
+}
+
+.nav-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.nav-search-icon {
+  position: absolute;
+  left: 12px;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 1;
+  transition: color 0.2s ease;
+}
+
+.nav-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 32px 0 34px;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.9);
+  font-size: 0.84rem;
+  outline: none;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(4px);
+}
+
+.nav-search-input::placeholder {
+  color: rgba(255,255,255,0.35);
+}
+
+.nav-search-input:focus {
+  background: rgba(255,255,255,0.11);
+  border-color: rgba(245,158,11,0.45);
+  box-shadow: 0 0 0 3px rgba(245,158,11,0.12);
+  color: white;
+}
+
+.nav-search-input:focus + .nav-search-icon,
+.nav-search-wrap:focus-within .nav-search-icon {
+  color: rgba(245,158,11,0.8);
+}
+
+.nav-search-clear {
+  position: absolute;
+  right: 10px;
+  border: none;
+  background: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.nav-search-clear:hover {
+  color: #fca5a5;
 }
 
 /* ---------- Toggler ---------- */
 .navbar-toggler {
-  border-color: rgba(255,255,255,0.3) !important;
+  border-color: rgba(255,255,255,0.25) !important;
 }
 
 .navbar-toggler:focus {
@@ -158,7 +298,7 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 991px) {
   .nav-link-custom {
-    padding: 0.6rem 0 !important;
+    padding: 0.65rem 0 !important;
   }
 
   .nav-link-custom::after {
@@ -167,7 +307,11 @@
 
   .navbar-collapse {
     padding: 1rem 0;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    border-top: 1px solid rgba(255,255,255,0.07);
     margin-top: 0.5rem;
+    background: rgba(10,18,35,0.96);
+    border-radius: 0 0 12px 12px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 }

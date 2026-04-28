@@ -5,8 +5,17 @@
       <button class="close-x" (click)="close()">&times;</button>
     </div>
 
-    <form (ngSubmit)="save()">
+    <div class="modal-body" *ngIf="loading" style="text-align:center; padding: 2rem;">
+      <div class="spinner-border text-primary" role="status"></div>
+      <p style="margin-top: 1rem; color: #888;">Loading profile...</p>
+    </div>
+
+    <form (ngSubmit)="save()" *ngIf="!loading">
       <div class="modal-body">
+
+        <div class="alert-success" *ngIf="successMsg">{{ successMsg }}</div>
+        <div class="alert-error" *ngIf="errorMsg">{{ errorMsg }}</div>
+
         <div class="input-field">
           <label>Name</label>
           <input type="text" [(ngModel)]="user.name" name="name">
@@ -25,11 +34,17 @@
           <label>About</label>
           <textarea [(ngModel)]="user.about" name="about"></textarea>
         </div>
-        
+        <div class="input-field">
+          <label>Phone</label>
+          <input type="text" [(ngModel)]="user.phone" name="phone">
+        </div>
+
       </div>
       <div class="modal-footer">
         <button type="button" class="btn-cancel" (click)="close()">Cancel</button>
-        <button type="submit" class="btn-save">Update Profile</button>
+        <button type="submit" class="btn-save" [disabled]="saving">
+          {{ saving ? 'Saving...' : 'Update Profile' }}
+        </button>
       </div>
     </form>
   </div>

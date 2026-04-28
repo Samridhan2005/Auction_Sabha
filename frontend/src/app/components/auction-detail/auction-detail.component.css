@@ -4,10 +4,12 @@
 
 /* ---------- Left Panel — Product Info ---------- */
 .product-panel {
-  background: #1e293b;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
   border-radius: 20px;
   overflow: hidden;
   height: 100%;
+  border: 1px solid rgba(255,255,255,0.06);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.35);
 }
 
 .product-img-wrapper {
@@ -161,13 +163,13 @@
 
 /* ---------- Current Bid Card ---------- */
 .current-bid-card {
-  background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #1d4ed8 100%);
   border-radius: 20px;
   padding: 1.75rem;
   color: white;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(29,78,216,0.35);
+  box-shadow: 0 4px 20px rgba(29,78,216,0.3);
 }
 
 .current-bid-card::before {
@@ -175,9 +177,20 @@
   position: absolute;
   top: -40px;
   right: -40px;
-  width: 140px;
-  height: 140px;
-  background: rgba(255,255,255,0.05);
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(255,255,255,0.07) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.current-bid-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px;
+  left: -20px;
+  width: 120px;
+  height: 120px;
+  background: radial-gradient(circle, rgba(245,158,11,0.08) 0%, transparent 70%);
   border-radius: 50%;
 }
 
@@ -250,19 +263,36 @@
 .place-bid-btn {
   border-radius: 12px !important;
   font-size: 1rem;
-  background: #f59e0b !important;
-  border-color: #f59e0b !important;
+  background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+  border: none !important;
   color: #1a1a1a !important;
   font-weight: 700 !important;
   letter-spacing: 0.3px;
-  transition: all 0.2s ease;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  position: relative;
+  overflow: hidden;
+}
+
+.place-bid-btn::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -75%;
+  width: 50%;
+  height: 200%;
+  background: rgba(255,255,255,0.2);
+  transform: skewX(-20deg);
+  transition: left 0.4s ease;
+}
+
+.place-bid-btn:hover::after {
+  left: 125%;
 }
 
 .place-bid-btn:hover:not(:disabled) {
-  background: #d97706 !important;
-  border-color: #d97706 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+  background: linear-gradient(135deg, #fbbf24, #f59e0b) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245,158,11,0.45) !important;
 }
 
 .place-bid-btn:disabled {
@@ -354,6 +384,119 @@
   color: #f59e0b;
 }
 
+/* ---------- Countdown Timer ---------- */
+.timer-card {
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.timer-card.timer-urgent {
+  border-color: rgba(239,68,68,0.6);
+  box-shadow: 0 0 18px rgba(239,68,68,0.25);
+  animation: pulse-border 0.8s ease-in-out infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 12px rgba(239,68,68,0.2); }
+  50%       { box-shadow: 0 0 28px rgba(239,68,68,0.5); }
+}
+
+.timer-inner {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.timer-ring {
+  width: 72px;
+  height: 72px;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.08);
+  stroke-width: 8;
+}
+
+.timer-ring-fill {
+  fill: none;
+  stroke: #10b981;
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+}
+
+.timer-ring-fill.ring-urgent {
+  stroke: #ef4444;
+}
+
+.timer-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.timer-seconds {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #e2e8f0;
+  line-height: 1;
+}
+
+.timer-label {
+  font-size: 0.6rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ---------- Quick Bid ---------- */
+.quick-bid-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quick-bid-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.quick-bid-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.quick-bid-btn {
+  font-size: 0.75rem;
+  padding: 3px 9px;
+  border-color: rgba(255,255,255,0.15);
+  color: #94a3b8;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.quick-bid-btn:hover:not(:disabled) {
+  background: rgba(245,158,11,0.15);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
 /* ---------- Toast Container ---------- */
 .toast-container {
   position: fixed;
@@ -389,4 +532,47 @@
   .product-meta-divider {
     display: none;
   }
+}
+
+/* ---------- Winner Popup ---------- */
+.winner-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.winner-popup-card {
+  background: linear-gradient(135deg, #1e3a5f 0%, #7c3aed 100%);
+  border-radius: 24px;
+  padding: 2.5rem 3rem;
+  text-align: center;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.winner-confetti {
+  font-size: 3rem;
+  animation: bounce 0.8s infinite alternate;
+}
+
+.winner-trophy {
+  font-size: 4rem;
+  margin: 0.5rem 0;
+}
+
+@keyframes popIn {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-8px); }
 }

@@ -17,4 +17,13 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     // 4. Popular/Latest: Since we don't have bidCount, we show latest submitted items
     List<Product> findByVerificationStatusOrderBySubmittedAtDesc(String status);
+
+    // 5. Seller Dashboard: All products by a specific seller
+    List<Product> findBySeller_UserIdOrderBySubmittedAtDesc(int sellerId);
+
+    // 6. Tentative slot check: PENDING products that want this date+slot
+    int countByVerificationStatusAndPreferredDateAndPreferredSlot(String status, java.time.LocalDate date, int slot);
+
+    // 7. Admin: all products sorted newest first
+    List<Product> findAllByOrderBySubmittedAtDesc();
 }

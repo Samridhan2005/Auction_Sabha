@@ -1,6 +1,16 @@
 import { User } from './user.model';
 
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type AiVerdictStatus = 'LIKELY_AUTHENTIC' | 'NEEDS_REVIEW' | 'SUSPICIOUS' | 'NOT_CONFIGURED';
+
+export interface AiVerdict {
+  verdict: AiVerdictStatus;
+  documentType: string;
+  confidence: number;
+  summary: string;
+  concerns: string[];
+  suggestions: string;
+}
 
 export interface Category {
   categoryId: number;
@@ -14,16 +24,42 @@ export interface Product {
   productName: string;
   description: string;
   imageUrl: string;
+  documentsUrl: string | null;
   startingPrice: number;
   verificationStatus: VerificationStatus;
   adminRemarks: string | null;
   submittedAt: string;
+  preferredDate: string | null;
+  aiVerdict: string | null;
+  aiVerdictSummary: string | null;
+}
+
+export type AuctionStatus = 'CREATED' | 'LIVE' | 'ENDED';
+
+export interface SellerProductSummary {
+  productId: number;
+  productName: string;
+  description: string;
+  imageUrl: string | null;
+  startingPrice: number;
+  verificationStatus: VerificationStatus;
+  adminRemarks: string | null;
+  submittedAt: string;
+  categoryName: string;
+  auctionId: number | null;
+  auctionStatus: AuctionStatus | null;
+  finalBid: number;
+  winner: string | null;
+  profit: number;
+  endTime: string | null;
 }
 
 export interface ProductSubmitRequest {
   productName: string;
   description: string;
   imageUrl: string;
+  documentsUrl: string;
   startingPrice: number;
   categoryId: number;
+  preferredDate: string;
 }

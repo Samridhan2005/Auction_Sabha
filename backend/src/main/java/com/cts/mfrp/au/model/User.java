@@ -16,9 +16,14 @@ public class User {
     private String name;
     @Column(unique = true)
     private String email;
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
     private String phone;
     private String role;
+    private Integer age;
+    private String place;
+    @Column(length = 512)
+    private String about;
 
 
     public int getUserId() {

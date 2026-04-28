@@ -43,6 +43,8 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
     @Setter
     @Getter
     private float curBid;
+    @Setter
+    @Getter
     private int prevUserId;
 
 
@@ -61,7 +63,13 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             if (u == null) throw new UserNotFoundException("Not a valid user.");
             if(auction==null) throw new AuctionNotFoundException("Auction not found.");
             if (!"LIVE".equals(auction.getStatus())) throw new AuctionIllegalStateException("Auction is not live.");
-            if (walletService.getBalance(bid.getBidderId()).getAvailableBalance() < bid.getAmount()) throw new LowBidException("Bid Amount Should not be greater than your wallet balance.");
+            // If this bidder is currently the highest bidder, their frozen bid will be
+            // returned before the new bid is frozen — so count it toward their available balance.
+            float effectiveAvailable = walletService.getBalance(bid.getBidderId()).getAvailableBalance();
+            if (bid.getBidderId() == prevUserId) {
+                effectiveAvailable += curBid;
+            }
+            if (effectiveAvailable < bid.getAmount()) throw new LowBidException("Insufficient wallet balance to place this bid.");
             if (curBid >= bid.getAmount()) throw new LowBidException("Bid Amount Should be greater than current Bid.");
 
             if (prevUserId != 0) {
@@ -69,12 +77,13 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             }
             walletService.freezeBal(bid.getBidderId(), bid.getAmount());
 
-            auctionService.setHighestBidder(auction.getAuctionId(), u);
             curBid = bid.getAmount();
+            auctionService.updateBid(auction.getAuctionId(), u, curBid);
             Bid x = new Bid();
             x.setBidAmount(curBid);
-            x.setBidder(userService.findById(bid.getBidderId()));
+            x.setBidder(u);
             x.setAuction(auction);
+            x.setBidTime(java.time.LocalDateTime.now());
             bidService.insertBid(x);
 
             bidTimerService.resetTimer(bid.getAuctionId());
@@ -90,7 +99,8 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
             prevUserId = bid.getBidderId();
         }
         catch (RuntimeException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Bid rejected: " + ex.getMessage());
+            sendError(session, ex.getMessage());
         }
         catch (Exception ex){
             sendError(session, ex.getMessage());

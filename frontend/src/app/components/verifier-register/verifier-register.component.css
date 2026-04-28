@@ -1,0 +1,25 @@
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 680px;
+  border-radius: 1rem;
+  border: none;
+}
+
+.form-check:hover {
+  background-color: #f0fdf4;
+  border-color: #22c55e !important;
+}
+
+.form-check-input:checked + .form-check-label {
+  font-weight: 600;
+  color: #15803d;
+}

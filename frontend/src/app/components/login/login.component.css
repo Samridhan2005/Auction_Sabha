@@ -1,162 +1,93 @@
 /* ============================================================
-   Login Component — Split Screen Premium
+   Login — Full-Screen Background + Light Card
    ============================================================ */
 
-/* ---------- Outer Wrapper ---------- */
+/* ---------- Full-Screen Wrapper ---------- */
 .login-wrapper {
   min-height: 100vh;
   display: flex;
-  flex-direction: row;
-  overflow: hidden;
-}
-
-/* ---------- Left Brand Side ---------- */
-.login-brand-side {
-  flex: 0 0 48%;
-  max-width: 48%;
-  background: linear-gradient(145deg, #1e3a5f 0%, #1e40af 45%, #2563eb 100%);
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 3rem;
-  position: relative;
-  overflow: hidden;
-}
-
-/* decorative blobs */
-.login-brand-side::before {
-  content: '';
-  position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 280px;
-  height: 280px;
-  background: rgba(245,158,11,0.08);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.login-brand-side::after {
-  content: '';
-  position: absolute;
-  bottom: -60px;
-  left: -60px;
-  width: 220px;
-  height: 220px;
-  background: rgba(124,58,237,0.1);
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-/* ---------- Brand Icon ---------- */
-.brand-icon {
-  width: 52px;
-  height: 52px;
-  background: rgba(245,158,11,0.2);
-  border: 2px solid rgba(245,158,11,0.4);
-  border-radius: 14px;
-  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  color: #f59e0b;
-  flex-shrink: 0;
+  padding: 2rem 1rem;
+  background: #0f172a;
 }
 
-/* ---------- Brand Headline ---------- */
-.brand-headline {
-  font-size: 2.4rem;
-  font-weight: 900;
-  line-height: 1.15;
-  letter-spacing: -1px;
-  color: white;
-}
-
-.brand-accent {
-  color: #f59e0b;
-}
-
-/* ---------- Feature List ---------- */
-.feature-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-.feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 1rem;
-}
-
-.feature-check {
-  width: 28px;
-  height: 28px;
-  background: rgba(16,185,129,0.2);
-  border: 1.5px solid rgba(16,185,129,0.5);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
-  color: #34d399;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-/* ---------- Testimonial ---------- */
-.testimonial-quote {
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 16px;
-  padding: 1.25rem;
-  backdrop-filter: blur(4px);
-}
-
-.testimonial-avatar {
-  width: 36px;
-  height: 36px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  flex-shrink: 0;
-}
-
-/* ---------- Right Form Side ---------- */
-.login-form-side {
-  flex: 1;
-  background: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-}
-
-.login-form-inner {
+/* ---------- Login Card (white, light) ---------- */
+.login-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 460px;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+/* ---------- Card Brand Header ---------- */
+.login-brand-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 2rem 2rem 0;
+}
+
+.login-brand-icon {
+  width: 46px;
+  height: 46px;
+  background: rgba(11, 180, 170, 0.1);
+  border: 1.5px solid rgba(11, 180, 170, 0.35);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  color: #0bb4aa;
+  flex-shrink: 0;
+}
+
+.login-brand-name {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.4px;
+}
+
+.login-brand-tagline {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* ---------- Card Body ---------- */
+.login-card-body {
+  padding: 1.5rem 2rem 2rem;
 }
 
 /* ---------- Form Heading ---------- */
-.form-heading {
-  font-size: 2rem;
-  color: #1e293b;
-  letter-spacing: -0.5px;
+.login-form-heading {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+
+.login-form-sub {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin: 0;
 }
 
 /* ---------- Field Label ---------- */
-.form-field-label {
+.login-field-label {
   display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.82rem;
+  font-weight: 700;
   color: #374151;
   margin-bottom: 6px;
+  letter-spacing: 0.2px;
 }
 
 /* ---------- Input Group ---------- */
@@ -164,43 +95,58 @@
   background: #f8fafc;
   border-right: none;
   border-color: #e2e8f0;
-  color: #64748b;
-  border-radius: 10px 0 0 10px !important;
+  color: #94a3b8;
+  border-radius: 12px 0 0 12px !important;
+  transition: all 0.2s ease;
 }
 
 .input-group-custom .form-field {
   border-left: none;
   border-color: #e2e8f0;
   font-size: 0.95rem;
-  padding: 0.65rem 0.85rem;
+  padding: 0.7rem 0.85rem;
+  background: #f8fafc;
+  color: #0f172a;
+  transition: all 0.2s ease;
+}
+
+.input-group-custom .form-field::placeholder {
+  color: #cbd5e1;
 }
 
 .input-group-custom .form-field:focus {
   box-shadow: none;
   border-color: #2563eb;
+  background: white;
 }
 
-.input-group-custom .form-field:focus ~ .input-icon,
 .input-group-custom .input-icon:has(+ .form-field:focus) {
   border-color: #2563eb;
+  color: #2563eb;
+  background: white;
 }
 
 .input-toggle {
   border-color: #e2e8f0;
   border-left: none;
   background: #f8fafc;
-  color: #64748b;
-  border-radius: 0 10px 10px 0 !important;
+  color: #94a3b8;
+  border-radius: 0 12px 12px 0 !important;
+  transition: all 0.2s ease;
 }
 
 .input-toggle:hover {
   background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
 }
 
-/* ---------- Forgot Link ---------- */
+/* ---------- Remember / Forgot ---------- */
 .forgot-link {
   color: #2563eb;
   font-size: 0.85rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
 }
 
 .forgot-link:hover {
@@ -209,36 +155,37 @@
 
 /* ---------- Sign In Button ---------- */
 .sign-in-btn {
-  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+  background: #101010;
   border: none;
   color: white;
-  border-radius: 12px;
+  border-radius: 10px;
   font-size: 1rem;
-  letter-spacing: 0.2px;
-  transition: all 0.2s ease;
+  font-weight: 700;
+  letter-spacing: 0.1px;
+  padding: 12px 25px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .sign-in-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+  background: #1e3a5f;
   color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(37,99,235,0.35);
+  box-shadow: 0 6px 20px rgba(15,23,42,0.35);
 }
 
 .sign-in-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 /* ---------- Divider ---------- */
-.form-divider {
+.login-divider {
   position: relative;
   text-align: center;
   color: #94a3b8;
   font-size: 0.85rem;
 }
 
-.form-divider::before {
+.login-divider::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -249,15 +196,17 @@
   transform: translateY(-50%);
 }
 
-.form-divider span {
+.login-divider span {
   position: relative;
   background: white;
   padding: 0 1rem;
 }
 
-/* ---------- Register Link ---------- */
+/* ---------- Links ---------- */
 .register-link {
   color: #2563eb;
+  font-weight: 600;
+  transition: color 0.2s ease;
 }
 
 .register-link:hover {
@@ -265,20 +214,16 @@
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 991px) {
-  .login-brand-side {
-    display: none !important;
+@media (max-width: 480px) {
+  .login-card {
+    border-radius: 20px;
   }
 
-  .login-form-side {
-    padding: 2rem 1.5rem;
+  .login-brand-header {
+    padding: 1.5rem 1.5rem 0;
   }
-}
 
-@media (max-width: 576px) {
-  .login-form-side {
-    padding: 1.5rem 1rem;
-    align-items: flex-start;
-    padding-top: 3rem;
+  .login-card-body {
+    padding: 1.25rem 1.5rem 1.75rem;
   }
 }

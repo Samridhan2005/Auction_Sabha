@@ -1,25 +1,71 @@
+/* ============================================================
+   Wallet Component — Premium v2
+   ============================================================ */
+
 .wallet-balance-card {
-  background: linear-gradient(135deg, #1a237e 0%, #3949ab 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #2563eb 100%);
   color: white;
-  border-radius: 16px;
+  border-radius: 20px;
   padding: 2rem;
   border: none;
-  box-shadow: 0 8px 25px rgba(26, 35, 126, 0.3);
+  box-shadow: 0 4px 24px rgba(30,58,95,0.25);
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-balance-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -15%;
+  width: 250px;
+  height: 250px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.wallet-balance-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30%;
+  left: 20%;
+  width: 180px;
+  height: 180px;
+  background: rgba(245,158,11,0.07);
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 .frozen-balance-card {
-  background: linear-gradient(135deg, #f5f6fa 0%, #e8eaf6 100%);
-  border-radius: 16px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 20px;
   padding: 2rem;
-  border: 2px dashed #c5cae9;
+  border: 2px dashed #cbd5e1 !important;
+  transition: all 0.25s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+}
+
+.frozen-balance-card:hover {
+  border-color: #94a3b8 !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
 }
 
 .wallet-balance-amount {
-  font-size: 2.4rem;
-  font-weight: 800;
+  font-size: 2.6rem;
+  font-weight: 900;
   line-height: 1.1;
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 
 .wallet-icon {
-  opacity: 0.5;
+  opacity: 0.35;
+  font-size: 3.5rem !important;
+  filter: drop-shadow(0 2px 8px rgba(255,255,255,0.1));
+}
+
+/* Transaction table rows */
+.transaction-row-enter {
+  animation: slide-in 0.3s ease;
 }

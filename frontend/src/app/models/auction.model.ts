@@ -26,6 +26,8 @@ export interface AuctionCard {
   isFeatured: boolean;
   startTime: string | null;
   endTime: string | null;
+  confirmedStartTime: string | null;
+  slotEndTime: string | null;
   highestBidder: string | null;
   productId: number;
   productName: string;
@@ -35,6 +37,7 @@ export interface AuctionCard {
   sellerName: string;
   categoryId: number;
   categoryName: string;
+  bidCount?: number;
 }
 
 export interface BidMessage {

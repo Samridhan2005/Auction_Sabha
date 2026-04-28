@@ -1,3 +1,21 @@
+<!-- ========== Winner Popup ========== -->
+<div class="winner-popup-overlay" *ngIf="showWinnerPopup" (click)="closeWinnerPopup()">
+  <div class="winner-popup-card" (click)="$event.stopPropagation()">
+    <div class="winner-confetti">🎉</div>
+    <div class="winner-trophy">🏆</div>
+    <h2 class="fw-black text-warning mb-2" style="font-size:1.8rem;">You Won!</h2>
+    <p class="text-white mb-1" style="font-size:1.1rem;">Congratulations, <strong>{{ highestBidder }}</strong>!</p>
+    <p class="text-white-50 mb-4">Your winning bid of <strong class="text-warning">{{ formatCurrency(currentBid) }}</strong> secured this auction.</p>
+    <p class="text-white-50 small mb-4">The amount will be debited from your frozen balance and the product delivered to you.</p>
+    <button class="btn btn-warning fw-bold px-5 py-2" (click)="closeWinnerPopup()">
+      <i class="bi bi-check-circle me-2"></i>Awesome!
+    </button>
+    <p class="text-white-50 small mt-3" *ngIf="navigateCountdown > 0">
+      <i class="bi bi-arrow-right-circle me-1"></i>Returning to home in {{ navigateCountdown }}s…
+    </p>
+  </div>
+</div>
+
 <!-- ========== Toast Container ========== -->
 <div class="toast-container">
   <div
@@ -140,11 +158,59 @@
           </div>
         </div>
 
+        <!-- 100-Second Countdown Timer (starts on first bid) -->
+        <div class="timer-card mb-3 fade-in-up" *ngIf="auctionStatus === 'LIVE' && timerStarted" [class.timer-urgent]="timerUrgent">
+          <div class="timer-inner">
+            <svg class="timer-ring" viewBox="0 0 100 100">
+              <circle class="timer-ring-track" cx="50" cy="50" r="45" />
+              <circle
+                class="timer-ring-fill"
+                cx="50" cy="50" r="45"
+                [style.strokeDasharray]="2 * 3.14159 * 45"
+                [style.strokeDashoffset]="timerDashOffset"
+                [class.ring-urgent]="timerUrgent"
+              />
+            </svg>
+            <div class="timer-text">
+              <span class="timer-seconds" [class.text-danger]="timerUrgent">{{ timeLeft }}</span>
+              <span class="timer-label">sec</span>
+            </div>
+          </div>
+          <div class="timer-info ms-3">
+            <p class="fw-bold mb-0" [class.text-danger]="timerUrgent">
+              {{ timerUrgent ? 'Hurry up!' : 'Time Remaining' }}
+            </p>
+            <p class="text-muted small mb-0">100s — resets on each bid</p>
+          </div>
+        </div>
+
+        <!-- Waiting for first bid notice -->
+        <div class="alert alert-info d-flex align-items-center gap-2 mb-3 rounded-3"
+             *ngIf="auctionStatus === 'LIVE' && !timerStarted">
+          <i class="bi bi-hourglass fs-5"></i>
+          <span><strong>Timer idle.</strong> Place a bid to start the 100-second countdown!</span>
+        </div>
+
         <!-- Place Bid Section (only if LIVE) -->
         <div class="place-bid-card mb-3 fade-in-up" *ngIf="auctionStatus === 'LIVE'">
           <h6 class="place-bid-title mb-3">
             <i class="bi bi-lightning-fill me-2" style="color:#f59e0b;"></i>Place Your Bid
           </h6>
+
+          <!-- Quick Bid Buttons -->
+          <div class="quick-bid-row mb-3">
+            <span class="quick-bid-label">Quick Bid:</span>
+            <div class="quick-bid-btns">
+              <button
+                *ngFor="let inc of quickBidAmounts"
+                class="btn btn-outline-secondary btn-sm quick-bid-btn"
+                (click)="setQuickBid(inc)"
+                [disabled]="isSubmitting">
+                +{{ inc | number }}
+              </button>
+            </div>
+          </div>
+
           <div class="input-group mb-2">
             <span class="input-group-text bid-input-prefix fw-bold">&#x20B9;</span>
             <input
@@ -192,9 +258,12 @@
             <div>
               <p class="fw-bold mb-1">Auction Closed</p>
               <p class="mb-0 small" *ngIf="highestBidder">
-                Winner: <strong>{{ highestBidder }}</strong>
+                Winner: <strong>{{ highestBidder }}</strong> &mdash; {{ formatCurrency(currentBid) }}
               </p>
               <p class="mb-0 small opacity-75" *ngIf="!highestBidder">No bids were placed.</p>
+              <p class="mb-0 small text-muted mt-1" *ngIf="navigateCountdown > 0">
+                <i class="bi bi-arrow-right-circle me-1"></i>Redirecting in {{ navigateCountdown }}s&hellip;
+              </p>
             </div>
           </div>
         </div>
@@ -225,6 +294,30 @@
                   <br/>
                   <small class="text-muted" style="font-size:0.7rem;">{{ bid.time | date:'HH:mm:ss' }}</small>
                 </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Leaderboard (shown after auction ends) -->
+        <div class="bid-history-card fade-in-up mt-3" *ngIf="leaderboard.length > 0">
+          <div class="bid-history-header">
+            <i class="bi bi-bar-chart-fill me-2 text-warning"></i>Final Leaderboard
+            <span class="badge bg-warning text-dark ms-2 rounded-pill">{{ leaderboard.length }}</span>
+          </div>
+          <ul class="bid-history-list list-unstyled mb-0">
+            <li class="bid-history-item"
+                *ngFor="let entry of leaderboard"
+                [class.first-bid]="entry.rank === 1">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="bid-bidder">
+                  <span class="me-2 fw-bold" style="color:#f59e0b;" *ngIf="entry.rank === 1">🏆</span>
+                  <span class="me-2 fw-bold text-muted" *ngIf="entry.rank > 1">#{{ entry.rank }}</span>
+                  <span class="fw-semibold">{{ entry.bidder }}</span>
+                </div>
+                <span class="bid-amount-sm fw-bold" [ngClass]="entry.rank === 1 ? 'text-accent' : 'text-muted'">
+                  {{ formatCurrency(entry.maxBid) }}
+                </span>
               </div>
             </li>
           </ul>

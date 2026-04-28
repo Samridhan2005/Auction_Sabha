@@ -26,6 +26,8 @@ public class Auction {
 
     private java.time.LocalDateTime startTime;
     private java.time.LocalDateTime endTime;
+    private java.time.LocalDateTime confirmedStartTime;
+    private java.time.LocalDateTime slotEndTime;
     private String status;
     private boolean isFeatured;
 

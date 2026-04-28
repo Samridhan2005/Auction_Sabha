@@ -28,8 +28,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**", "/ws/**", "/ws").permitAll()
+                    .requestMatchers("/api/auth/**", "/ws/**", "/ws", "/api/auction/slots").permitAll()
+                    .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/verifier-applications").permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/verifier-applications", "/api/verifier-applications/**").hasRole("ADMIN")
                     .anyRequest().authenticated()
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

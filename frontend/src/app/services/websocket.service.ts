@@ -1,5 +1,5 @@
 import { Injectable, OnDestroy } from '@angular/core';
-import { Subject, Observable } from 'rxjs';
+import { Subject, BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { BidMessage, BidUpdate } from '../models/auction.model';
 
@@ -7,7 +7,9 @@ import { BidMessage, BidUpdate } from '../models/auction.model';
 export class WebsocketService implements OnDestroy {
   private socket: WebSocket | null = null;
   private messageSubject = new Subject<BidUpdate>();
-  private connectionStatusSubject = new Subject<'CONNECTED' | 'DISCONNECTED' | 'ERROR'>();
+  private connectionStatusSubject = new BehaviorSubject<'CONNECTED' | 'DISCONNECTED' | 'ERROR'>('DISCONNECTED');
+  private intentionalDisconnect = false;
+  private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 
   get messages$(): Observable<BidUpdate> {
     return this.messageSubject.asObservable();
@@ -19,9 +21,15 @@ export class WebsocketService implements OnDestroy {
 
   connect(): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      // Already connected — re-emit so late subscribers (e.g. navigating to a new page) get the current state
+      this.connectionStatusSubject.next('CONNECTED');
+      return;
+    }
+    if (this.socket && this.socket.readyState === WebSocket.CONNECTING) {
       return;
     }
 
+    this.intentionalDisconnect = false;
     this.socket = new WebSocket(environment.wsUrl);
 
     this.socket.onopen = () => {
@@ -44,6 +52,9 @@ export class WebsocketService implements OnDestroy {
 
     this.socket.onclose = () => {
       this.connectionStatusSubject.next('DISCONNECTED');
+      if (!this.intentionalDisconnect) {
+        this.reconnectTimeout = setTimeout(() => this.connect(), 3000);
+      }
     };
   }
 
@@ -56,6 +67,11 @@ export class WebsocketService implements OnDestroy {
   }
 
   disconnect(): void {
+    this.intentionalDisconnect = true;
+    if (this.reconnectTimeout !== null) {
+      clearTimeout(this.reconnectTimeout);
+      this.reconnectTimeout = null;
+    }
     if (this.socket) {
       this.socket.close();
       this.socket = null;

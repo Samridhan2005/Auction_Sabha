@@ -1,26 +1,21 @@
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  // This is the single source of truth for your user data
-  private userData = {
-    name: 'Chandrakanth',
-    age: 24,
-    place: 'Andhra Pradesh, India',
-    about: 'I am an active bidder on Auction Sabha, looking for the best electronic deals.',
-    reminders: 'Enabled'
-  };
+  private readonly baseUrl = `${environment.apiBaseUrl}/api/auth/profile`;
 
-  // Method to get the current data
-  getProfile() {
-    return { ...this.userData }; // Returns a copy
+  constructor(private http: HttpClient) {}
+
+  getProfile(userId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/${userId}`);
   }
 
-  // Method to update the data
-  updateProfile(newData: any) {
-    this.userData = { ...newData };
-    console.log('Central Service Updated:', this.userData);
+  updateProfile(userId: number, data: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}/${userId}`, data);
   }
 }

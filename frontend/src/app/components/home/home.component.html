@@ -2,23 +2,22 @@
   <div class="container">
 
     <div class="hero-banner p-4 p-md-5 mb-4 text-white fade-in-up">
-      <div class="hero-circle hero-circle-1"></div>
-      <div class="hero-circle hero-circle-2"></div>
-
       <div class="position-relative" style="z-index:1;">
         <div class="d-flex align-items-center justify-content-center gap-3 mb-3">
-          <i class="bi bi-hammer" style="font-size:2.5rem; color: var(--accent);"></i>
-          <h1 class="display-4 fw-black mb-0" style="letter-spacing:-1px;">Auction Sabha</h1>
+          <div style="background:rgba(245,158,11,0.18);border:2px solid rgba(245,158,11,0.45);border-radius:16px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;">
+            <i class="bi bi-hammer" style="font-size:1.6rem; color: #f59e0b;"></i>
+          </div>
+          <h1 class="hero-title display-4 fw-black mb-0">Auction Sabha</h1>
         </div>
-        <p class="lead text-center mb-4 opacity-90">
+        <p class="hero-subtitle text-center mb-4">
           Discover and bid on exclusive auctions in real-time.
           <br class="d-none d-md-block"/>Premium items. Transparent pricing. Live experience.
         </p>
 
         <div class="d-flex justify-content-center gap-3 flex-wrap mb-5">
-          <a routerLink="/home" class="btn btn-lg fw-bold px-4" style="background:var(--accent);color:#1a1a1a;border-color:var(--accent);">
+          <button class="btn btn-lg fw-bold px-4" style="background:var(--accent);color:#1a1a1a;border-color:var(--accent);" (click)="scrollToAuctions()">
             <i class="bi bi-lightning-fill me-2"></i>Participate Now
-          </a>
+          </button>
           <a *ngIf="role === 'SELLER'" routerLink="/submit-product" class="btn btn-outline-light btn-lg fw-semibold px-4">
             <i class="bi bi-plus-circle me-2"></i>Sell an Item
           </a>
@@ -41,16 +40,31 @@
           </div>
           <div class="stat-divider"></div>
           <div class="stat-item">
-            <div class="stat-value">100%</div>
-            <div class="stat-label">Verified Products</div>
+            <div class="stat-value">{{ watchlist.count }}</div>
+            <div class="stat-label"><i class="bi bi-heart-fill me-1" style="color:#ef4444;"></i>Watching</div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="card mb-4 filter-card fade-in-up" *ngIf="!isLoading && auctions.length > 0"
+    <!-- ── Filter Card ──────────────────────────────────────────────── -->
+    <div class="card mb-3 filter-card fade-in-up" *ngIf="!isLoading && auctions.length > 0"
          style="animation-delay:0.1s;">
       <div class="card-body p-3 p-md-4">
+
+        <!-- Search bar -->
+        <div class="mb-3">
+          <div class="search-input-wrap">
+            <i class="bi bi-search search-icon-inside"></i>
+            <input type="text" class="form-control filter-search-input"
+                   placeholder="Search by name, category, or seller…"
+                   [value]="searchText"
+                   (input)="onSearchInput($any($event.target).value)" />
+            <button *ngIf="searchText" class="search-clear-btn" (click)="onSearchInput('')">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
 
         <div class="row g-3 align-items-end mb-3">
           <div class="col-md-5">
@@ -89,29 +103,112 @@
 
         <div>
           <label class="filter-label">
-            <i class="bi bi-currency-rupee me-1"></i>Price Range:
-            <strong class="ms-1" style="color:#1e3a5f;">
-              {{ formatCurrency(minPrice) }} – {{ formatCurrency(maxPrice) }}
-            </strong>
+            <i class="bi bi-currency-rupee me-1"></i>Max Price:
+            <strong class="ms-1" style="color:#1e3a5f;">{{ formatCurrency(maxPrice) }}</strong>
           </label>
-          <div class="price-range-wrapper">
-            <input type="range" class="form-range price-slider" [min]="0" [max]="priceRangeMax" [step]="priceRangeMax / 200"
-                   [value]="minPrice"
-                   (input)="onMinPriceChange(+$any($event.target).value)" />
-            <input type="range" class="form-range price-slider" [min]="0" [max]="priceRangeMax" [step]="priceRangeMax / 200"
-                   [value]="maxPrice"
-                   (input)="onMaxPriceChange(+$any($event.target).value)" />
-          </div>
+          <input type="range" class="form-range price-slider"
+                 [min]="0" [max]="priceRangeMax" [step]="priceRangeMax / 200"
+                 [value]="maxPrice"
+                 (input)="onMaxPriceChange(+$any($event.target).value)" />
           <div class="d-flex justify-content-between mt-1" style="font-size:0.72rem;color:#94a3b8;">
             <span>{{ formatCurrency(0) }}</span>
             <span>{{ formatCurrency(priceRangeMax) }}</span>
           </div>
         </div>
 
+        <!-- Sort bar -->
+        <div class="sort-bar mt-3 pt-3 border-top">
+          <span class="filter-label mb-0 me-2"><i class="bi bi-sort-down me-1"></i>Sort:</span>
+          <button class="sort-chip" [class.active]="sortBy === 'default'"   (click)="setSortBy('default')">Default</button>
+          <button class="sort-chip" [class.active]="sortBy === 'price-asc'" (click)="setSortBy('price-asc')">Price ↑</button>
+          <button class="sort-chip" [class.active]="sortBy === 'price-desc'"(click)="setSortBy('price-desc')">Price ↓</button>
+          <button class="sort-chip" [class.active]="sortBy === 'bids'"      (click)="setSortBy('bids')">
+            <i class="bi bi-hammer me-1"></i>Most Bids
+          </button>
+          <button class="sort-chip" [class.active]="sortBy === 'ending'"    (click)="setSortBy('ending')">
+            <i class="bi bi-hourglass-split me-1"></i>Ending Soon
+          </button>
+          <button class="sort-chip" [class.active]="sortBy === 'newest'"    (click)="setSortBy('newest')">
+            <i class="bi bi-calendar-plus me-1"></i>Newest
+          </button>
+        </div>
+
       </div>
     </div>
 
-    <div class="d-flex align-items-center justify-content-between mb-4 fade-in-up" style="animation-delay:0.15s;">
+    <!-- ── Category Strip ───────────────────────────────────────────── -->
+    <div class="category-strip fade-in-up" *ngIf="!isLoading && categories.length > 0"
+         style="animation-delay:0.13s;">
+      <button class="cat-pill" [class.active]="selectedCategory === ''" (click)="setCategory('')">
+        <i class="bi bi-grid-3x3-gap-fill me-1"></i>All
+        <span class="cat-count">{{ auctions.length }}</span>
+      </button>
+      <button class="cat-pill" *ngFor="let cat of categories"
+              [class.active]="selectedCategory === cat"
+              (click)="setCategory(cat)">
+        {{ cat }}
+        <span class="cat-count">{{ categoryCounts.get(cat) }}</span>
+      </button>
+    </div>
+
+    <!-- ── Ending Soon Strip ─────────────────────────────────────────── -->
+    <div class="ending-soon-section fade-in-up" *ngIf="endingSoon.length > 0"
+         style="animation-delay:0.14s;">
+      <div class="ending-soon-header">
+        <i class="bi bi-fire ending-fire-icon"></i>
+        <span class="ending-soon-title">Ending Soon</span>
+        <span class="ending-count-badge">{{ endingSoon.length }}</span>
+      </div>
+      <div class="ending-soon-scroll">
+        <div class="ending-card" *ngFor="let a of endingSoon" (click)="goToAuction(a)">
+          <img [src]="a.imageUrl || 'assets/no-image.svg'" class="ending-card-img" [alt]="a.productName"
+               (error)="$any($event.target).src='assets/no-image.svg'" />
+          <div class="ending-card-body">
+            <div class="ending-card-name">{{ a.productName }}</div>
+            <div class="ending-card-bid">{{ formatCurrency(a.currentBid || a.startingPrice) }}</div>
+            <div class="ending-card-timer">
+              <i class="bi bi-hourglass-split me-1"></i>{{ getCountdown(a) }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Auction Calendar ─────────────────────────────────────────── -->
+    <div class="auction-calendar fade-in-up" *ngIf="!isLoading && upcomingGroups.length > 0"
+         style="animation-delay:0.16s;">
+      <div class="ac-header">
+        <i class="bi bi-calendar3 ac-cal-icon"></i>
+        <span class="ac-title">Auction Calendar</span>
+        <span class="ac-subtitle">Upcoming scheduled lots</span>
+      </div>
+      <div class="ac-groups">
+        <div class="ac-group" *ngFor="let group of upcomingGroups">
+          <div class="ac-group-label" [style.--gc]="group.color">
+            <i class="bi me-1" [ngClass]="group.icon" [style.color]="group.color"></i>
+            {{ group.label }}
+            <span class="ac-group-count" [style.background]="group.color">{{ group.auctions.length }}</span>
+          </div>
+          <div class="ac-scroll">
+            <div class="ac-card" *ngFor="let a of group.auctions" (click)="goToAuction(a)">
+              <img [src]="a.imageUrl || 'assets/no-image.svg'" class="ac-img" [alt]="a.productName"
+                   (error)="$any($event.target).src='assets/no-image.svg'" />
+              <div class="ac-card-body">
+                <div class="ac-card-cat">{{ a.categoryName }}</div>
+                <div class="ac-card-name">{{ a.productName }}</div>
+                <div class="ac-card-time" *ngIf="a.confirmedStartTime">
+                  <i class="bi bi-clock me-1"></i>{{ formatSlotDate(a.confirmedStartTime) }}
+                </div>
+                <div class="ac-card-price">From {{ formatCurrency(a.startingPrice) }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section Header ────────────────────────────────────────────── -->
+    <div id="featured-auctions" class="d-flex align-items-center justify-content-between mb-4 fade-in-up" style="animation-delay:0.15s;">
       <div class="d-flex align-items-center gap-3">
         <h4 class="section-header mb-0 fw-bold">Featured Auctions</h4>
         <span class="badge rounded-pill bg-dark px-3 py-2 fs-6" *ngIf="filteredAuctions.length > 0">
@@ -159,6 +256,7 @@
       </button>
     </div>
 
+    <!-- ── Auction Cards Grid ─────────────────────────────────────────── -->
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" *ngIf="!isLoading && filteredAuctions.length > 0">
 
       <div class="col fade-in-up" *ngFor="let auction of filteredAuctions; let i = index"
@@ -174,11 +272,13 @@
             />
             <div class="card-img-overlay-gradient"></div>
 
+            <!-- Featured badge -->
             <span class="badge position-absolute top-0 start-0 m-2 featured-badge"
                   *ngIf="auction.isFeatured">
               <i class="bi bi-star-fill me-1"></i>Featured
             </span>
 
+            <!-- Status badge -->
             <span class="badge position-absolute top-0 end-0 m-2 px-3 py-2 status-badge"
                   [ngClass]="{
                     'badge-live': auction.status === 'LIVE',
@@ -191,11 +291,23 @@
               {{ auction.status }}
             </span>
 
+            <!-- Watchlist heart button -->
+            <button class="watchlist-heart-btn position-absolute"
+                    (click)="$event.stopPropagation(); watchlist.toggle(auction.auctionId)">
+              <i class="bi"
+                 [ngClass]="watchlist.isWatched(auction.auctionId) ? 'bi-heart-fill watched' : 'bi-heart'"
+              ></i>
+            </button>
+
             <div class="position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-between align-items-center">
               <span class="category-chip-overlay">
                 <i class="bi bi-tag-fill me-1"></i>{{ auction.categoryName }}
               </span>
-              
+
+              <span class="bid-count-chip" *ngIf="(auction.bidCount || 0) > 0">
+                <i class="bi bi-hammer me-1"></i>{{ auction.bidCount }}
+              </span>
+
               <span class="timer-chip"
                     [ngClass]="{
                       'timer-chip-live': auction.status === 'LIVE',
@@ -210,9 +322,17 @@
 
           <div class="card-body d-flex flex-column p-3">
 
-            <h5 class="card-title fw-bold mb-1 text-truncate" style="font-size:1.1rem; color: #1e293b;">
-              {{ auction.productName }}
-            </h5>
+            <!-- Title row with watchlist indicator -->
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <h5 class="card-title fw-bold mb-0 text-truncate" style="font-size:1.1rem; color:#1e293b;">
+                {{ auction.productName }}
+              </h5>
+              <span class="watchlist-indicator ms-2 flex-shrink-0"
+                    *ngIf="watchlist.isWatched(auction.auctionId)"
+                    title="In your watchlist">
+                <i class="bi bi-heart-fill" style="color:#ef4444; font-size:0.85rem;"></i>
+              </span>
+            </div>
 
             <p class="card-text text-muted small mb-3 description-clamp">
               {{ auction.description }}
@@ -227,7 +347,9 @@
                    </p>
                 </div>
                 <div class="text-end">
-                   <p class="text-muted x-small mb-0">Status</p>
+                   <p class="text-muted x-small mb-0">
+                     <span *ngIf="(auction.bidCount || 0) > 0">{{ auction.bidCount }} bid{{ auction.bidCount === 1 ? '' : 's' }} &bull; </span>Status
+                   </p>
                    <span class="small fw-semibold" [ngClass]="auction.status === 'LIVE' ? 'text-success' : 'text-secondary'">
                       {{ auction.status }}
                    </span>
@@ -267,12 +389,102 @@
         </div>
       </div>
 
-    </div></div></div>```
+    </div>
 
-### Why these changes work:
-1.  **Overlay Placement:** I placed the timer inside the `card-img-wrapper`. Since you already have `position-relative` and a gradient overlay there, the white timer text will pop beautifully against the image.
-2.  **Dynamic Iconry:** In the timer chip, I switched the icon to `bi-hourglass-split` for LIVE auctions to give a sense of urgency, and `bi-calendar-event` for upcoming ones.
-3.  **Blink Effect:** I added a logic check: if the countdown contains only seconds (meaning less than a minute left), it adds a `blink-timer` class. This is great for drawing the user's eye to auctions that are about to close.
-4.  **Monospaced Styling:** (Optional but recommended) In your CSS, make sure the `.timer-chip` uses a monospaced font so the numbers don't "jump" when they change.
+    <!-- ── Recently Viewed ──────────────────────────────────────────── -->
+    <div class="recently-viewed-section fade-in-up" *ngIf="recentlyViewedList.length > 0">
+      <div class="rv-header">
+        <div class="rv-header-left">
+          <i class="bi bi-clock-history rv-icon"></i>
+          <span class="rv-title">Recently Viewed</span>
+          <span class="rv-count">{{ recentlyViewedList.length }}</span>
+        </div>
+        <button class="rv-clear-btn" (click)="clearRecentlyViewed()">
+          <i class="bi bi-x-lg me-1"></i>Clear
+        </button>
+      </div>
+      <div class="rv-scroll">
+        <div class="rv-card" *ngFor="let a of recentlyViewedList" (click)="goToAuction(a)">
+          <div class="rv-img-wrap">
+            <img [src]="a.imageUrl || 'assets/no-image.svg'" class="rv-img" [alt]="a.productName"
+                 (error)="$any($event.target).src='assets/no-image.svg'" />
+            <span class="rv-status-dot"
+                  [ngClass]="{
+                    'rv-dot-live': a.status === 'LIVE',
+                    'rv-dot-created': a.status === 'CREATED',
+                    'rv-dot-ended': a.status === 'ENDED'
+                  }"></span>
+          </div>
+          <div class="rv-body">
+            <div class="rv-name">{{ a.productName }}</div>
+            <div class="rv-bid">{{ formatCurrency(a.currentBid || a.startingPrice) }}</div>
+            <div class="rv-status-text"
+                 [ngClass]="{
+                   'text-success': a.status === 'LIVE',
+                   'text-primary': a.status === 'CREATED',
+                   'text-muted':   a.status === 'ENDED'
+                 }">{{ a.status }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-This HTML perfectly matches the TS file we updated earlier. Are you ready to see the CSS to make that "blink" and "overlay" look professional?
+    <!-- ── Trust / Confidence Section ─────────────────────────────── -->
+    <div class="trust-section mt-5 fade-in-up">
+
+      <div class="text-center mb-5">
+        <div class="trust-eyebrow mb-2">
+          <i class="bi bi-patch-check-fill me-1"></i> Why Auction Sabha
+        </div>
+        <h3 class="trust-title">Bid With Confidence</h3>
+        <p class="trust-subtitle">
+          Since its launch, Auction Sabha has powered thousands of successful auctions with
+          fully verified products, a secure digital wallet, and live real-time bidding — so you
+          always know exactly what you're getting.
+        </p>
+      </div>
+
+      <div class="row g-3 mb-5">
+        <div class="col-6 col-lg-3">
+          <div class="trust-badge-card">
+            <div class="trust-badge-icon" style="--c:#2563eb;">
+              <i class="bi bi-shield-check-fill"></i>
+            </div>
+            <div class="trust-badge-title">Verified Products</div>
+            <div class="trust-badge-desc">Every item reviewed and approved by our expert verifier team before listing.</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="trust-badge-card">
+            <div class="trust-badge-icon" style="--c:#10b981;">
+              <i class="bi bi-wallet2"></i>
+            </div>
+            <div class="trust-badge-title">Secure Wallet</div>
+            <div class="trust-badge-desc">Funds are frozen on bid and only settled after the auction ends — zero risk.</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="trust-badge-card">
+            <div class="trust-badge-icon" style="--c:#ef4444;">
+              <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <div class="trust-badge-title">Live Real-Time Bids</div>
+            <div class="trust-badge-desc">WebSocket-powered auction rooms — every bid reflects instantly across all participants.</div>
+          </div>
+        </div>
+        <div class="col-6 col-lg-3">
+          <div class="trust-badge-card">
+            <div class="trust-badge-icon" style="--c:#f59e0b;">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="trust-badge-title">Trusted Community</div>
+            <div class="trust-badge-desc">Role-based access ensures buyers, sellers and verifiers all play fair.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- ── End Trust Section ───────────────────────────────────────── -->
+
+  </div>
+</div>

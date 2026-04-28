@@ -14,6 +14,16 @@
       </button>
     </div>
 
+    <!-- Role notice for non-bidding roles -->
+    <div class="alert alert-info d-flex align-items-center gap-2 mb-4"
+         *ngIf="role === 'ADMIN' || role === 'VERIFIER'">
+      <i class="bi bi-info-circle-fill fs-5"></i>
+      <span>
+        Wallets are used for placing and receiving auction bids.
+        Your role (<strong>{{ role }}</strong>) does not participate in bidding, so your wallet balance will always be ₹0.
+      </span>
+    </div>
+
     <!-- User ID Input (when not stored) -->
     <div class="card mb-4 border-warning" *ngIf="showUserIdInput">
       <div class="card-body">

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../services/product.service';
-import { Product } from '../../models/product.model';
+import { AiVerdict, Product } from '../../models/product.model';
 
 interface Toast { type: 'success' | 'danger' | 'info'; text: string; id: number; }
 
@@ -18,6 +18,9 @@ export class VerifierComponent implements OnInit {
   toasts: Toast[] = [];
   private toastCounter = 0;
 
+  aiVerdicts: { [productId: number]: AiVerdict } = {};
+  aiCheckLoading: { [productId: number]: boolean } = {};
+
   constructor(private productService: ProductService) {}
 
   ngOnInit(): void { this.loadPending(); }
@@ -32,6 +35,30 @@ export class VerifierComponent implements OnInit {
         this.errorMessage = err.status === 0 ? 'Cannot connect to server.' : 'Failed to load pending products.';
       }
     });
+  }
+
+  checkDocumentWithAi(product: Product): void {
+    if (!product.documentsUrl) return;
+    this.aiCheckLoading[product.productId] = true;
+
+    this.productService.verifyDocument({
+      documentUrl: product.documentsUrl,
+      productName: product.productName,
+      description: product.description
+    }).subscribe({
+      next: (verdict: AiVerdict) => {
+        this.aiCheckLoading[product.productId] = false;
+        this.aiVerdicts[product.productId] = verdict;
+      },
+      error: () => {
+        this.aiCheckLoading[product.productId] = false;
+        this.showToast('danger', 'AI check failed. Please try again.');
+      }
+    });
+  }
+
+  verdictLabel(v: string): string {
+    return v.replace(/_/g, ' ');
   }
 
   approve(productId: number): void {

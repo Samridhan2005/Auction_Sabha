@@ -9,6 +9,7 @@ import com.cts.mfrp.au.repository.WalletRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -61,6 +62,35 @@ public class UserService {
     public User findById(int id){
         Optional<User> our= userRepository.findById(id);
         return our.orElse(null);
+    }
+
+    public void updateProfile(int userId, Map<String, Object> body) {
+        User user = findById(userId);
+        if (user == null) throw new RuntimeException("User not found");
+        if (body.containsKey("name") && body.get("name") != null)
+            user.setName(body.get("name").toString());
+        if (body.containsKey("phone") && body.get("phone") != null)
+            user.setPhone(body.get("phone").toString());
+        if (body.containsKey("age") && body.get("age") != null) {
+            try { user.setAge(Integer.parseInt(body.get("age").toString())); } catch (NumberFormatException ignored) {}
+        }
+        if (body.containsKey("place") && body.get("place") != null)
+            user.setPlace(body.get("place").toString());
+        if (body.containsKey("about") && body.get("about") != null)
+            user.setAbout(body.get("about").toString());
+        userRepository.save(user);
+    }
+
+    public void changePassword(int userId, String oldPassword, String newPassword) {
+        User user = findById(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new RuntimeException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 
 }

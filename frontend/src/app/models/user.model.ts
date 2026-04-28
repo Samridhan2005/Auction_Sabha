@@ -5,6 +5,9 @@ export interface User {
   password?: string;
   phone: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN';
+  age?: number;
+  place?: string;
+  about?: string;
 }
 
 export interface LoginRequest {
@@ -17,6 +20,7 @@ export interface LoginResponse {
   role: string;
   token: string;
   userId: number;
+  name: string;
 }
 
 export interface RegisterRequest {

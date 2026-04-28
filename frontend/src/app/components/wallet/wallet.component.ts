@@ -47,11 +47,17 @@ export class WalletComponent implements OnInit {
 
     const userId = this.authService.getUserId();
     if (userId) {
+      // userId found automatically — don't ask the user to re-enter it
       this.loadWallet(userId);
       this.loadTransactions(userId);
     } else {
+      // userId missing from localStorage — ask the user to enter it manually
       this.showUserIdInput = true;
     }
+  }
+
+  get role(): string | null {
+    return this.authService.getRole();
   }
 
   get effectiveUserId(): number | null {
@@ -77,8 +83,15 @@ export class WalletComponent implements OnInit {
       error: (err: { status: number; error?: { message?: string } }) => {
         this.walletLoading = false;
         if (err.status === 404) {
-          this.walletError = 'Wallet not found for this user ID. Please check your User ID.';
-          this.showUserIdInput = true;
+          if (this.showUserIdInput) {
+            // User manually entered an ID — it's likely wrong
+            this.walletError = 'No wallet found for that user ID. Please check the ID and try again.';
+          } else {
+            // userId was auto-detected from localStorage — ID is correct, wallet is missing
+            this.walletError = 'Your wallet could not be found. Please contact the admin.';
+          }
+          // Do NOT set showUserIdInput = true here — that misleads the user into thinking
+          // their auto-detected user ID is wrong when it is actually correct.
         } else if (err.status === 0) {
           this.walletError = 'Cannot connect to server. Please try again.';
         } else {
