@@ -85,10 +85,9 @@
 
       <ul class="navbar-nav align-items-center gap-2">
         
+        <!-- Role Badge (Click event removed from here) -->
         <li class="nav-item">
           <span class="role-badge" 
-                (click)="toggleProfile()" 
-                style="cursor: pointer;"
                 [ngClass]="{
                   'role-buyer':    role === 'BUYER',
                   'role-seller':   role === 'SELLER',
@@ -106,8 +105,9 @@
           </span>
         </li>
 
+        <!-- Username Chip (Click event added here) -->
         <li class="nav-item d-none d-lg-block">
-          <span class="user-chip" style="cursor: pointer;">
+          <span class="user-chip" style="cursor: pointer;" (click)="toggleProfile()">
             <i class="bi bi-person-circle me-1"></i>
             {{ userName }}
           </span>
@@ -124,6 +124,7 @@
   </div>
 </nav>
 
+<!-- Profile Component Popup -->
 <app-profile 
   *ngIf="isProfileVisible" 
   (closeRequested)="isProfileVisible = false">
