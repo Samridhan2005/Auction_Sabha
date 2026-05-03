@@ -1,5 +1,45 @@
-<!-- Toast Container -->
-<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1200">
+<!-- ── Credentials Popup ─────────────────────────────────────────────── -->
+<div class="cred-overlay" *ngIf="credentialsModal.visible" (click)="closeCredentialsModal()">
+  <div class="cred-box" (click)="$event.stopPropagation()">
+    <div class="cred-header">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-check-circle-fill fs-5"></i>
+        <span class="fw-bold fs-6">Verifier Approved — Login Credentials</span>
+      </div>
+      <button class="btn-close btn-close-white" (click)="closeCredentialsModal()"></button>
+    </div>
+    <div class="cred-body">
+      <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" *ngIf="!credentialsModal.emailSent">
+        <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+        <span>Email not configured — share credentials manually with <strong>{{ credentialsModal.name }}</strong>.</span>
+      </div>
+      <div class="alert alert-success d-flex align-items-start gap-2 mb-4" *ngIf="credentialsModal.emailSent">
+        <i class="bi bi-envelope-check-fill mt-1 flex-shrink-0"></i>
+        <span>Credentials emailed to <strong>{{ credentialsModal.email }}</strong>.</span>
+      </div>
+      <label class="form-label fw-semibold text-muted small">Login Email</label>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" [value]="credentialsModal.email" readonly />
+        <button class="btn btn-outline-secondary" type="button" (click)="copyEmail()"><i class="bi bi-copy"></i></button>
+      </div>
+      <label class="form-label fw-semibold text-muted small">Temporary Password</label>
+      <div class="input-group mb-1">
+        <input class="form-control fw-bold font-monospace" [type]="passwordVisible ? 'text' : 'password'" [value]="credentialsModal.password" readonly />
+        <button class="btn btn-outline-secondary" type="button" (click)="passwordVisible = !passwordVisible">
+          <i class="bi" [ngClass]="passwordVisible ? 'bi-eye-slash' : 'bi-eye'"></i>
+        </button>
+        <button class="btn btn-primary" type="button" (click)="copyPassword()"><i class="bi bi-copy me-1"></i>Copy</button>
+      </div>
+      <p class="text-danger small fw-semibold mb-0"><i class="bi bi-exclamation-triangle me-1"></i>This password will NOT be shown again.</p>
+    </div>
+    <div class="cred-footer">
+      <button class="btn btn-success fw-semibold px-4" (click)="closeCredentialsModal()"><i class="bi bi-check-lg me-1"></i>Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast Container ───────────────────────────────────────────────── -->
+<div class="toast-container">
   <div *ngFor="let toast of toasts" class="toast show align-items-center border-0 mb-2"
        [ngClass]="{'text-bg-success': toast.type==='success','text-bg-danger': toast.type==='danger','text-bg-info': toast.type==='info'}" role="alert">
     <div class="d-flex">
@@ -12,101 +52,785 @@
   </div>
 </div>
 
+<!-- ── Main Page ─────────────────────────────────────────────────────── -->
 <div class="page-wrapper">
-  <div class="container">
+  <div class="container-fluid px-3 px-md-4">
 
     <!-- Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-      <div class="d-flex align-items-center">
-        <i class="bi bi-shield-fill text-danger fs-3 me-3"></i>
-        <div>
-          <h3 class="fw-bold mb-0">Auctioneer Panel</h3>
-          <p class="text-muted small mb-0">Start and stop live auction sessions.</p>
+    <div class="admin-page-header mb-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="admin-header-icon">
+            <i class="bi bi-shield-fill-check"></i>
+          </div>
+          <div>
+            <h2 class="fw-black mb-0 text-dark" style="letter-spacing:-0.5px;font-size:1.4rem;">Admin Dashboard</h2>
+            <p class="mb-0 small" style="color:#6c6c77;">Manage auctions, products, schedules &amp; verifiers</p>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <div class="ws-status-chip" [class.ws-connected]="isWsConnected">
+            <span class="ws-dot"></span>
+            {{ isWsConnected ? 'Live Feed Active' : 'Connecting...' }}
+          </div>
+          <button class="btn btn-sm fw-semibold px-3"
+                  style="background:#101010;color:white;border-radius:8px;"
+                  (click)="loadAuctions(); loadProductRegistry()"
+                  [disabled]="isLoading || isLoadingProducts">
+            <i class="bi bi-arrow-clockwise me-1"></i>Refresh All
+          </button>
         </div>
       </div>
-      <button class="btn btn-outline-primary btn-sm" (click)="loadAuctions()" [disabled]="isLoading">
-        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+    </div>
+
+    <!-- ── Tabs ─────────────────────────────────────────────────────── -->
+    <div class="admin-tabs nav mb-4">
+      <button class="nav-link" [class.active]="activeTab === 'overview'"  (click)="switchTab('overview')">
+        <i class="bi bi-grid-1x2-fill"></i>Overview
+      </button>
+      <button class="nav-link" [class.active]="activeTab === 'auctions'" (click)="switchTab('auctions')">
+        <i class="bi bi-hammer"></i>Manage Auctions
+        <span class="tab-badge tab-badge-live" *ngIf="liveAuctions.length > 0">
+          <span class="live-dot-xs"></span>{{ liveAuctions.length }}
+        </span>
+      </button>
+      <button class="nav-link" [class.active]="activeTab === 'products'" (click)="switchTab('products')">
+        <i class="bi bi-box-seam-fill"></i>Products
+        <span class="tab-badge tab-badge-warn" *ngIf="stats.pendingVerif > 0">{{ stats.pendingVerif }}</span>
+      </button>
+      <button class="nav-link" [class.active]="activeTab === 'schedule'" (click)="switchTab('schedule')">
+        <i class="bi bi-calendar3"></i>Auction Schedule
+      </button>
+      <button class="nav-link" [class.active]="activeTab === 'verifiers'" (click)="switchTab('verifiers')">
+        <i class="bi bi-clipboard-check-fill"></i>Verifiers
+        <span class="tab-badge tab-badge-warn" *ngIf="pendingAppsCount > 0">{{ pendingAppsCount }}</span>
       </button>
     </div>
 
-    <!-- Loading -->
-    <div class="text-center py-5" *ngIf="isLoading">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="text-muted mt-3">Loading auctions...</p>
+    <!-- ══════════════════════════════════════════════════════════════
+         OVERVIEW TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'overview'">
+
+      <!-- Loading state -->
+      <div class="text-center py-5" *ngIf="isLoadingProducts">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-3 small">Loading dashboard data...</p>
+      </div>
+
+      <ng-container *ngIf="!isLoadingProducts">
+
+        <!-- Alert: pending products -->
+        <div class="overview-alert overview-alert-warn mb-4" *ngIf="stats.pendingVerif > 0">
+          <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+          <div>
+            <div class="fw-bold">{{ stats.pendingVerif }} product{{ stats.pendingVerif > 1 ? 's' : '' }} awaiting verifier review</div>
+            <div class="small opacity-80">These products are submitted but not yet approved or rejected by a verifier.</div>
+          </div>
+          <button class="btn btn-sm btn-warning fw-semibold ms-auto" (click)="switchTab('products')">
+            Review <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+
+        <!-- Alert: live auctions -->
+        <div class="overview-alert overview-alert-live mb-4" *ngIf="stats.live > 0">
+          <span class="live-pulse-dot"></span>
+          <div>
+            <div class="fw-bold">{{ stats.live }} auction{{ stats.live > 1 ? 's' : '' }} are LIVE right now</div>
+            <div class="small opacity-80">Real-time bidding is active. Monitor and stop from the Manage Auctions tab.</div>
+          </div>
+          <button class="btn btn-sm btn-danger fw-semibold ms-auto" (click)="switchTab('auctions')">
+            Monitor <i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+
+        <!-- Product Stats Row -->
+        <div class="overview-section-label mb-2">
+          <i class="bi bi-box-seam me-1"></i>Product Registry
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Total Products</span>
+                <div class="kpi-icon" style="background:rgba(37,99,235,0.1);color:#2563eb;"><i class="bi bi-box-seam-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.totalProducts }}</div>
+              <div class="kpi-desc">All registered products</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Pending Review</span>
+                <div class="kpi-icon" style="background:rgba(245,158,11,0.1);color:#d97706;"><i class="bi bi-hourglass-split"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.pendingVerif }}</div>
+              <div class="kpi-desc">Awaiting verifier approval</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Approved</span>
+                <div class="kpi-icon" style="background:rgba(16,185,129,0.1);color:#059669;"><i class="bi bi-patch-check-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.approved }}</div>
+              <div class="kpi-desc">Products cleared for auction</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Rejected</span>
+                <div class="kpi-icon" style="background:rgba(239,68,68,0.1);color:#dc2626;"><i class="bi bi-x-circle-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.rejected }}</div>
+              <div class="kpi-desc">Products not approved</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auction Stats Row -->
+        <div class="overview-section-label mb-3">
+          <i class="bi bi-hammer me-1"></i>Auction Status
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Total Auctions</span>
+                <div class="kpi-icon" style="background:rgba(124,58,237,0.1);color:#7c3aed;"><i class="bi bi-collection-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.totalAuctions }}</div>
+              <div class="kpi-desc">All auction instances created</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card kpi-card-live">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Live Now</span>
+                <div class="kpi-icon" style="background:rgba(220,38,38,0.1);color:#dc2626;"><i class="bi bi-broadcast"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.live }}</div>
+              <div class="kpi-desc">
+                <span *ngIf="stats.live > 0"><span class="live-dot-xs me-1"></span>Bidding is active</span>
+                <span *ngIf="stats.live === 0">No active auctions</span>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Scheduled</span>
+                <div class="kpi-icon" style="background:rgba(11,180,170,0.1);color:#0bb4aa;"><i class="bi bi-calendar-check-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.scheduled }}</div>
+              <div class="kpi-desc">Upcoming auctions queued</div>
+            </div>
+          </div>
+          <div class="col-6 col-lg-3">
+            <div class="kpi-card">
+              <div class="kpi-card-top">
+                <span class="kpi-label">Completed</span>
+                <div class="kpi-icon" style="background:rgba(100,116,139,0.1);color:#64748b;"><i class="bi bi-flag-fill"></i></div>
+              </div>
+              <div class="kpi-value">{{ stats.ended }}</div>
+              <div class="kpi-desc">Auctions closed successfully</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Volume card -->
+        <div class="volume-card mb-4">
+          <div class="volume-left">
+            <div class="volume-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div>
+              <div class="volume-label">Total Bid Volume (Completed Auctions)</div>
+              <div class="volume-value">{{ formatCurrency(stats.totalVolume) }}</div>
+            </div>
+          </div>
+          <div class="volume-right">
+            <div class="volume-meta">{{ stats.ended }} auction{{ stats.ended !== 1 ? 's' : '' }} closed</div>
+          </div>
+        </div>
+
+        <!-- Two-column: live monitor + recent bids -->
+        <div class="row g-3">
+          <!-- Live Auctions -->
+          <div class="col-lg-5">
+            <div class="overview-panel h-100">
+              <div class="overview-panel-header">
+                <span class="live-pulse-dot me-2"></span>
+                <span class="fw-bold">Live Auctions</span>
+                <span class="ms-auto small opacity-75">{{ liveAuctions.length }} active</span>
+              </div>
+              <div class="overview-panel-body">
+                <div *ngIf="liveAuctions.length === 0" class="text-center py-4 text-muted small fst-italic">
+                  No auctions are live right now.
+                </div>
+                <div class="live-auction-mini mb-2" *ngFor="let a of liveAuctions">
+                  <div class="d-flex justify-content-between align-items-start mb-1">
+                    <span class="fw-semibold small text-truncate" style="max-width:160px;">{{ a.productName }}</span>
+                    <span class="status-pill status-pill-live ms-2"><span class="live-dot-xs"></span>LIVE</span>
+                  </div>
+                  <div class="live-bid-amount">{{ formatCurrency(a.currentBid) }}</div>
+                  <div class="small text-muted mt-1">
+                    <i class="bi bi-trophy-fill me-1" style="color:#f59e0b;"></i>
+                    {{ a.highestBidder || 'No bids yet' }}
+                  </div>
+                  <div class="d-flex gap-2 mt-2">
+                    <button class="btn btn-danger btn-sm flex-fill fw-semibold admin-action-btn"
+                            (click)="stopAuction(a.auctionId)" [disabled]="auctionActionLoading[a.auctionId]">
+                      <span *ngIf="auctionActionLoading[a.auctionId]" class="spinner-border spinner-border-sm me-1"></span>
+                      <i *ngIf="!auctionActionLoading[a.auctionId]" class="bi bi-stop-fill me-1"></i>Stop
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bid Feed -->
+          <div class="col-lg-7">
+            <div class="overview-panel h-100">
+              <div class="overview-panel-header">
+                <i class="bi bi-activity me-2 text-danger"></i>
+                <span class="fw-bold">Live Bid Feed</span>
+                <span class="ms-auto small opacity-75">{{ liveBidFeed.length }} bids received</span>
+              </div>
+              <div class="overview-panel-body bid-feed-wrapper">
+                <div *ngIf="liveBidFeed.length === 0" class="text-center py-4 text-muted small fst-italic">
+                  Waiting for bids...
+                </div>
+                <div class="bid-feed-list">
+                  <div *ngFor="let b of liveBidFeed; let i = index"
+                       class="bid-feed-item" [class.bid-feed-item-new]="i === 0">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-person-circle text-muted"></i>
+                        <div>
+                          <span class="fw-semibold small">{{ b.bidder }}</span>
+                          <span class="text-muted small ms-2">on <em>{{ b.productName }}</em></span>
+                        </div>
+                      </div>
+                      <div class="text-end">
+                        <span class="fw-bold text-success">{{ formatCurrency(b.amount) }}</span>
+                        <br/>
+                        <small class="text-muted" style="font-size:0.7rem;">{{ b.time | date:'HH:mm:ss' }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </ng-container>
     </div>
 
-    <!-- Error -->
-    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage && !isLoading">
-      <i class="bi bi-exclamation-triangle-fill"></i>
-      <span>{{ errorMessage }}</span>
-      <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadAuctions()">Retry</button>
-    </div>
+    <!-- ══════════════════════════════════════════════════════════════
+         MANAGE AUCTIONS TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'auctions'">
 
-    <!-- Empty -->
-    <div class="text-center py-5" *ngIf="!isLoading && !errorMessage && auctions.length === 0">
-      <i class="bi bi-calendar-x display-2 text-muted"></i>
-      <p class="text-muted mt-3">No featured auctions available to manage.</p>
-    </div>
-
-    <!-- Auctions Table -->
-    <div class="card shadow-sm" *ngIf="!isLoading && auctions.length > 0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="table-light">
-            <tr>
-              <th>ID</th>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Current Bid</th>
-              <th>Highest Bidder</th>
-              <th>Status</th>
-              <th class="text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let auction of auctions">
-              <td class="text-muted small">#{{ auction.auctionId }}</td>
-              <td>
+      <!-- Live Monitor Panel -->
+      <div *ngIf="liveAuctions.length > 0" class="live-monitor-panel mb-4">
+        <div class="live-monitor-header">
+          <div class="d-flex align-items-center gap-2">
+            <span class="live-pulse-dot"></span>
+            <span class="fw-bold">Live Monitor</span>
+            <span class="badge bg-danger ms-1">{{ liveAuctions.length }} LIVE</span>
+          </div>
+          <small class="opacity-75">Real-time bid feed — updates automatically</small>
+        </div>
+        <div class="row g-3 p-3 border-bottom">
+          <div class="col-md-4 col-sm-6" *ngFor="let a of liveAuctions">
+            <div class="live-auction-mini">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <span class="fw-semibold small text-truncate" style="max-width:150px;">{{ a.productName }}</span>
+                <span class="status-pill status-pill-live"><span class="live-dot-xs"></span>LIVE</span>
+              </div>
+              <div class="live-bid-amount">{{ formatCurrency(a.currentBid) }}</div>
+              <div class="small text-muted mt-1"><i class="bi bi-trophy-fill me-1" style="color:#f59e0b;"></i>{{ a.highestBidder || 'No bids yet' }}</div>
+              <button class="btn btn-danger btn-sm w-100 mt-2 fw-semibold admin-action-btn"
+                      (click)="stopAuction(a.auctionId)" [disabled]="auctionActionLoading[a.auctionId]">
+                <span *ngIf="auctionActionLoading[a.auctionId]" class="spinner-border spinner-border-sm"></span>
+                <span *ngIf="!auctionActionLoading[a.auctionId]"><i class="bi bi-stop-fill me-1"></i>Stop Auction</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="bid-feed-wrapper p-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="fw-semibold small"><i class="bi bi-activity me-1 text-danger"></i>Bid Feed</span>
+            <span class="text-muted small">{{ liveBidFeed.length }} received</span>
+          </div>
+          <div *ngIf="liveBidFeed.length === 0" class="text-muted small fst-italic py-1">Waiting for bids...</div>
+          <div class="bid-feed-list">
+            <div *ngFor="let b of liveBidFeed; let i = index" class="bid-feed-item" [class.bid-feed-item-new]="i === 0">
+              <div class="d-flex align-items-center justify-content-between">
                 <div class="d-flex align-items-center gap-2">
-                  <img
-                    [src]="auction.imageUrl || 'assets/no-image.svg'"
-                    width="40" height="40" class="rounded" style="object-fit:cover;"
-                    (error)="$any($event.target).src='assets/no-image.svg'" alt=""
-                  />
-                  <span class="fw-semibold">{{ auction.productName }}</span>
+                  <i class="bi bi-person-circle text-muted"></i>
+                  <div>
+                    <span class="fw-semibold small">{{ b.bidder }}</span>
+                    <span class="text-muted small ms-2">on <em>{{ b.productName }}</em></span>
+                  </div>
                 </div>
-              </td>
-              <td><span class="badge bg-light text-dark">{{ auction.categoryName }}</span></td>
-              <td class="fw-bold text-primary">{{ formatCurrency(auction.currentBid) }}</td>
-              <td>
-                <span *ngIf="auction.highestBidder">{{ auction.highestBidder }}</span>
-                <span *ngIf="!auction.highestBidder" class="text-muted">—</span>
-              </td>
-              <td>
-                <span class="badge px-2 py-1"
-                      [ngClass]="{'bg-primary': auction.status==='CREATED','bg-danger': auction.status==='LIVE','bg-secondary': auction.status==='ENDED'}">
-                  {{ auction.status }}
+                <div class="text-end">
+                  <span class="fw-bold text-success">{{ formatCurrency(b.amount) }}</span><br/>
+                  <small class="text-muted" style="font-size:0.7rem;">{{ b.time | date:'HH:mm:ss' }}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-primary btn-sm fw-semibold" (click)="loadAuctions()" [disabled]="isLoading">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+
+      <div class="text-center py-5" *ngIf="isLoading">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-3 small">Loading auctions...</p>
+      </div>
+
+      <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage && !isLoading">
+        <i class="bi bi-exclamation-triangle-fill"></i><span>{{ errorMessage }}</span>
+        <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadAuctions()">Retry</button>
+      </div>
+
+      <div class="admin-empty-state" *ngIf="!isLoading && !errorMessage && auctions.length === 0">
+        <div class="admin-empty-icon"><i class="bi bi-calendar-x"></i></div>
+        <p>No featured auctions available to manage.</p>
+      </div>
+
+      <div class="admin-table rounded-3 overflow-hidden shadow-sm" *ngIf="!isLoading && auctions.length > 0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th><th>Product</th><th>Category</th>
+                <th>Current Bid</th><th>Highest Bidder</th>
+                <th>Slot</th><th>Status</th><th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let auction of auctions">
+                <td class="text-muted small">#{{ auction.auctionId }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <img [src]="auction.imageUrl || 'assets/no-image.svg'" width="42" height="42"
+                         class="rounded-2" style="object-fit:cover;border:1px solid #e2e8f0;"
+                         (error)="$any($event.target).src='assets/no-image.svg'" alt="" />
+                    <div>
+                      <div class="fw-semibold small">{{ auction.productName }}</div>
+                      <div class="text-muted" style="font-size:0.72rem;">{{ auction.sellerName }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td><span class="cat-badge">{{ auction.categoryName }}</span></td>
+                <td class="fw-bold" style="color:#1e3a5f;">{{ formatCurrency(auction.currentBid) }}</td>
+                <td>
+                  <span *ngIf="auction.highestBidder" class="small">
+                    <i class="bi bi-trophy-fill me-1" style="color:#f59e0b;font-size:0.72rem;"></i>{{ auction.highestBidder }}
+                  </span>
+                  <span *ngIf="!auction.highestBidder" class="text-muted small fst-italic">No bids</span>
+                </td>
+                <td>
+                  <div class="small" *ngIf="auction.confirmedStartTime">
+                    <div class="fw-semibold">{{ auction.confirmedStartTime | date:'dd MMM' }}</div>
+                    <div class="text-muted">{{ auction.confirmedStartTime | date:'hh:mm a' }}</div>
+                  </div>
+                  <span *ngIf="!auction.confirmedStartTime" class="text-muted small">—</span>
+                </td>
+                <td>
+                  <span class="status-pill"
+                        [ngClass]="{'status-pill-live': auction.status==='LIVE','status-pill-created': auction.status==='CREATED','status-pill-ended': auction.status==='ENDED'}">
+                    <span class="live-dot-xs" *ngIf="auction.status==='LIVE'"></span>
+                    <i class="bi bi-clock" *ngIf="auction.status==='CREATED'" style="font-size:0.7rem;"></i>
+                    <i class="bi bi-flag-fill" *ngIf="auction.status==='ENDED'" style="font-size:0.7rem;"></i>
+                    {{ auction.status }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex gap-2 justify-content-center">
+                    <button class="btn btn-success btn-sm admin-action-btn"
+                            (click)="startAuction(auction.auctionId)"
+                            [disabled]="auctionActionLoading[auction.auctionId] || auction.status !== 'CREATED'">
+                      <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
+                      <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-play-fill me-1"></i>Start</span>
+                    </button>
+                    <button class="btn btn-danger btn-sm admin-action-btn"
+                            (click)="stopAuction(auction.auctionId)"
+                            [disabled]="auctionActionLoading[auction.auctionId] || auction.status !== 'LIVE'">
+                      <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
+                      <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-stop-fill me-1"></i>Stop</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         PRODUCTS TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'products'">
+
+      <!-- Filter bar -->
+      <div class="product-filter-bar mb-4">
+
+        <!-- Search -->
+        <div class="product-search-wrap">
+          <i class="bi bi-search product-search-icon"></i>
+          <input type="text" class="product-search-input" placeholder="Search by name, seller or category…"
+                 [(ngModel)]="productSearch" />
+          <button *ngIf="productSearch" class="product-search-clear" (click)="productSearch = ''">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <!-- Divider -->
+        <div class="pf-divider"></div>
+
+        <!-- Axis 1: Verification (independent) -->
+        <div class="filter-axis">
+          <span class="filter-axis-label"><i class="bi bi-patch-check me-1"></i>VERIFICATION</span>
+          <div class="filter-axis-chips">
+            <button class="pf-chip pf-chip-all" [class.active]="verifFilter === 'ALL'" (click)="verifFilter = 'ALL'">All</button>
+            <button class="pf-chip pf-chip-warn"    [class.active]="verifFilter === 'PENDING'"  (click)="verifFilter = 'PENDING'">
+              <i class="bi bi-hourglass-split me-1"></i>Pending
+            </button>
+            <button class="pf-chip pf-chip-success" [class.active]="verifFilter === 'APPROVED'" (click)="verifFilter = 'APPROVED'">
+              <i class="bi bi-patch-check-fill me-1"></i>Approved
+            </button>
+            <button class="pf-chip pf-chip-danger"  [class.active]="verifFilter === 'REJECTED'" (click)="verifFilter = 'REJECTED'">
+              <i class="bi bi-x-circle-fill me-1"></i>Rejected
+            </button>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="pf-divider"></div>
+
+        <!-- Axis 2: Auction (independent) -->
+        <div class="filter-axis">
+          <span class="filter-axis-label"><i class="bi bi-hammer me-1"></i>AUCTION</span>
+          <div class="filter-axis-chips">
+            <button class="pf-chip pf-chip-all" [class.active]="auctionFilter === 'ALL'"     (click)="auctionFilter = 'ALL'">All</button>
+            <button class="pf-chip"              [class.active]="auctionFilter === 'CREATED'" (click)="auctionFilter = 'CREATED'">Scheduled</button>
+            <button class="pf-chip pf-chip-live" [class.active]="auctionFilter === 'LIVE'"   (click)="auctionFilter = 'LIVE'">
+              <span class="live-dot-xs me-1"></span>Live
+            </button>
+            <button class="pf-chip"              [class.active]="auctionFilter === 'ENDED'"  (click)="auctionFilter = 'ENDED'">Ended</button>
+            <button class="pf-chip"              [class.active]="auctionFilter === 'NONE'"   (click)="auctionFilter = 'NONE'">No Auction</button>
+          </div>
+        </div>
+
+        <!-- Result count -->
+        <div class="pf-count ms-auto">
+          {{ filteredProducts.length }} of {{ adminProducts.length }} product{{ adminProducts.length !== 1 ? 's' : '' }}
+        </div>
+      </div>
+
+      <!-- Loading / error / empty -->
+      <div class="text-center py-5" *ngIf="isLoadingProducts">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-3 small">Loading product registry...</p>
+      </div>
+      <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="productsError && !isLoadingProducts">
+        <i class="bi bi-exclamation-triangle-fill"></i><span>{{ productsError }}</span>
+        <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadProductRegistry()">Retry</button>
+      </div>
+      <div class="admin-empty-state" *ngIf="!isLoadingProducts && !productsError && filteredProducts.length === 0">
+        <div class="admin-empty-icon"><i class="bi bi-box-seam"></i></div>
+        <p>{{ adminProducts.length === 0 ? 'No products registered yet.' : 'No products match the current filters.' }}</p>
+      </div>
+
+      <!-- Products Table -->
+      <div class="admin-table rounded-3 overflow-hidden shadow-sm" *ngIf="!isLoadingProducts && filteredProducts.length > 0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width:52px;"></th>
+                <th>Product</th>
+                <th>Seller</th>
+                <th>Category</th>
+                <th>Starting Price</th>
+                <th>Submitted</th>
+                <th>Preferred Slot</th>
+                <th>Verification</th>
+                <th>Auction Status</th>
+                <th>Confirmed Slot</th>
+                <th>Current Bid</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of filteredProducts">
+                <td class="p-2">
+                  <img [src]="p.imageUrl || 'assets/no-image.svg'" width="46" height="46"
+                       class="rounded-2" style="object-fit:cover;border:1px solid #e2e8f0;"
+                       (error)="$any($event.target).src='assets/no-image.svg'" alt="" />
+                </td>
+                <td>
+                  <div class="fw-semibold small">{{ p.productName }}</div>
+                  <div class="text-muted" style="font-size:0.7rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                    {{ p.description }}
+                  </div>
+                  <span class="ai-verdict-badge" *ngIf="p.aiVerdict"
+                        [ngClass]="{'ai-approve': p.aiVerdict === 'APPROVE', 'ai-reject': p.aiVerdict === 'REJECT', 'ai-review': p.aiVerdict === 'MANUAL_REVIEW'}">
+                    <i class="bi bi-robot me-1"></i>AI: {{ p.aiVerdict }}
+                  </span>
+                </td>
+                <td class="small">{{ p.sellerName }}</td>
+                <td><span class="cat-badge">{{ p.categoryName }}</span></td>
+                <td class="fw-semibold small">{{ formatCurrency(p.startingPrice) }}</td>
+                <td class="small text-muted">{{ p.submittedAt | date:'dd MMM yyyy' }}</td>
+                <td>
+                  <span class="slot-chip" *ngIf="p.preferredDate">
+                    <i class="bi bi-calendar-date me-1"></i>
+                    {{ p.preferredDate | date:'dd MMM' }} · Slot {{ p.preferredSlot }}
+                  </span>
+                  <span *ngIf="!p.preferredDate" class="text-muted small">—</span>
+                </td>
+                <td>
+                  <span class="verif-badge"
+                        [ngClass]="{'verif-pending': p.verificationStatus==='PENDING','verif-approved': p.verificationStatus==='APPROVED','verif-rejected': p.verificationStatus==='REJECTED'}">
+                    <i class="bi me-1"
+                       [ngClass]="{'bi-hourglass-split': p.verificationStatus==='PENDING','bi-patch-check-fill': p.verificationStatus==='APPROVED','bi-x-circle-fill': p.verificationStatus==='REJECTED'}"></i>
+                    {{ p.verificationStatus }}
+                  </span>
+                  <div class="text-muted mt-1" style="font-size:0.68rem;" *ngIf="p.adminRemarks">
+                    <i class="bi bi-chat-left-text me-1"></i>{{ p.adminRemarks }}
+                  </div>
+                </td>
+                <td>
+                  <span class="status-pill" *ngIf="p.auctionStatus"
+                        [ngClass]="{'status-pill-live': p.auctionStatus==='LIVE','status-pill-created': p.auctionStatus==='CREATED','status-pill-ended': p.auctionStatus==='ENDED'}">
+                    <span class="live-dot-xs" *ngIf="p.auctionStatus==='LIVE'"></span>
+                    {{ p.auctionStatus === 'CREATED' ? 'SCHEDULED' : p.auctionStatus }}
+                  </span>
+                  <span *ngIf="!p.auctionStatus" class="text-muted small fst-italic">No auction</span>
+                </td>
+                <td>
+                  <div *ngIf="p.confirmedStartTime" class="small">
+                    <div class="fw-semibold">{{ p.confirmedStartTime | date:'dd MMM yyyy' }}</div>
+                    <div class="text-muted">{{ formatTime(p.confirmedStartTime) }} – {{ formatTime(p.slotEndTime) }}</div>
+                  </div>
+                  <span *ngIf="!p.confirmedStartTime" class="text-muted small">—</span>
+                </td>
+                <td>
+                  <div class="fw-bold small" style="color:#1e3a5f;">{{ formatCurrency(p.currentBid) }}</div>
+                  <div class="text-muted" style="font-size:0.68rem;" *ngIf="p.highestBidder">
+                    <i class="bi bi-trophy-fill me-1" style="color:#f59e0b;"></i>{{ p.highestBidder }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         SCHEDULE TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'schedule'">
+
+      <div class="text-center py-5" *ngIf="isLoadingProducts">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-3 small">Loading schedule...</p>
+      </div>
+
+      <div class="admin-empty-state" *ngIf="!isLoadingProducts && scheduleGroups.length === 0">
+        <div class="admin-empty-icon"><i class="bi bi-calendar3"></i></div>
+        <p>No auction schedule found. Approve products via verifier to populate slots.</p>
+      </div>
+
+      <div *ngFor="let group of scheduleGroups" class="schedule-group mb-4">
+
+        <!-- Date header -->
+        <div class="schedule-date-header">
+          <div class="schedule-date-pill"
+               [ngClass]="{'schedule-today': group.label === 'Today', 'schedule-tomorrow': group.label === 'Tomorrow', 'schedule-unscheduled': group.label === 'Unscheduled'}">
+            <i class="bi me-2"
+               [ngClass]="{'bi-calendar-check-fill': group.label === 'Today','bi-calendar-plus-fill': group.label === 'Tomorrow','bi-calendar3': group.label !== 'Today' && group.label !== 'Tomorrow' && group.label !== 'Unscheduled','bi-calendar-x': group.label === 'Unscheduled'}"></i>
+            {{ group.label }}
+          </div>
+          <div class="schedule-date-count">{{ group.items.length }} auction{{ group.items.length !== 1 ? 's' : '' }}</div>
+        </div>
+
+        <!-- Auction rows -->
+        <div class="schedule-card" *ngFor="let p of group.items">
+          <!-- Left: time slot -->
+          <div class="schedule-time-col">
+            <div class="schedule-time-main" *ngIf="p.confirmedStartTime">
+              {{ formatTime(p.confirmedStartTime) }}
+            </div>
+            <div class="schedule-time-end" *ngIf="p.slotEndTime">
+              {{ formatTime(p.slotEndTime) }}
+            </div>
+            <div class="schedule-time-main text-muted" *ngIf="!p.confirmedStartTime">TBD</div>
+            <div class="schedule-slot-bar" [ngClass]="{'sbar-live': p.auctionStatus==='LIVE','sbar-created': p.auctionStatus==='CREATED','sbar-ended': p.auctionStatus==='ENDED'}"></div>
+          </div>
+
+          <!-- Center: product info -->
+          <div class="schedule-product-col">
+            <img [src]="p.imageUrl || 'assets/no-image.svg'" class="schedule-img"
+                 (error)="$any($event.target).src='assets/no-image.svg'" [alt]="p.productName" />
+            <div class="schedule-product-info">
+              <div class="schedule-product-name">{{ p.productName }}</div>
+              <div class="schedule-product-meta">
+                <span class="cat-badge">{{ p.categoryName }}</span>
+                <span class="text-muted small">· {{ p.sellerName }}</span>
+              </div>
+              <div class="schedule-bid-row">
+                <span class="schedule-bid-label">Starting bid:</span>
+                <span class="schedule-bid-value">{{ formatCurrency(p.startingPrice) }}</span>
+                <span class="schedule-current-bid" *ngIf="p.auctionStatus !== 'CREATED' && p.currentBid > p.startingPrice">
+                  <i class="bi bi-arrow-up-right me-1"></i>Current: {{ formatCurrency(p.currentBid) }}
                 </span>
-              </td>
-              <td class="text-center">
-                <div class="d-flex gap-2 justify-content-center">
-                  <button class="btn btn-success btn-sm"
-                          (click)="startAuction(auction.auctionId)"
-                          [disabled]="auctionActionLoading[auction.auctionId] || auction.status === 'LIVE' || auction.status === 'ENDED'">
-                    <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
-                    <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-play-fill me-1"></i>Start</span>
+              </div>
+              <div *ngIf="p.highestBidder && p.auctionStatus !== 'CREATED'" class="small text-muted">
+                <i class="bi bi-trophy-fill me-1" style="color:#f59e0b;"></i>{{ p.highestBidder }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: status + actions -->
+          <div class="schedule-action-col">
+            <!-- Verification badge -->
+            <span class="verif-badge mb-2"
+                  [ngClass]="{'verif-pending': p.verificationStatus==='PENDING','verif-approved': p.verificationStatus==='APPROVED','verif-rejected': p.verificationStatus==='REJECTED'}">
+              <i class="bi me-1"
+                 [ngClass]="{'bi-hourglass-split': p.verificationStatus==='PENDING','bi-patch-check-fill': p.verificationStatus==='APPROVED','bi-x-circle-fill': p.verificationStatus==='REJECTED'}"></i>
+              {{ p.verificationStatus }}
+            </span>
+
+            <!-- Auction status badge -->
+            <span class="status-pill mb-3"
+                  *ngIf="p.auctionStatus"
+                  [ngClass]="{'status-pill-live': p.auctionStatus==='LIVE','status-pill-created': p.auctionStatus==='CREATED','status-pill-ended': p.auctionStatus==='ENDED'}">
+              <span class="live-dot-xs" *ngIf="p.auctionStatus==='LIVE'"></span>
+              {{ p.auctionStatus === 'CREATED' ? 'SCHEDULED' : p.auctionStatus }}
+            </span>
+
+            <!-- Actions -->
+            <button class="btn btn-success btn-sm fw-semibold admin-action-btn w-100"
+                    *ngIf="p.auctionStatus === 'CREATED' && p.auctionId"
+                    (click)="startAuction(p.auctionId!)"
+                    [disabled]="auctionActionLoading[p.auctionId!]">
+              <span *ngIf="auctionActionLoading[p.auctionId!]" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!auctionActionLoading[p.auctionId!]" class="bi bi-play-fill me-1"></i>Start
+            </button>
+            <button class="btn btn-danger btn-sm fw-semibold admin-action-btn w-100"
+                    *ngIf="p.auctionStatus === 'LIVE' && p.auctionId"
+                    (click)="stopAuction(p.auctionId!)"
+                    [disabled]="auctionActionLoading[p.auctionId!]">
+              <span *ngIf="auctionActionLoading[p.auctionId!]" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!auctionActionLoading[p.auctionId!]" class="bi bi-stop-fill me-1"></i>Stop
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         VERIFIERS TAB
+         ══════════════════════════════════════════════════════════════ -->
+    <div *ngIf="activeTab === 'verifiers'">
+      <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-outline-primary btn-sm fw-semibold" (click)="loadVerifierApplications()" [disabled]="isLoadingApps">
+          <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+        </button>
+      </div>
+
+      <div class="text-center py-5" *ngIf="isLoadingApps">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="text-muted mt-3 small">Loading applications...</p>
+      </div>
+
+      <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="appsError && !isLoadingApps">
+        <i class="bi bi-exclamation-triangle-fill"></i><span>{{ appsError }}</span>
+        <button class="btn btn-sm btn-outline-danger ms-auto" (click)="loadVerifierApplications()">Retry</button>
+      </div>
+
+      <div class="admin-empty-state" *ngIf="!isLoadingApps && !appsError && verifierApplications.length === 0">
+        <div class="admin-empty-icon"><i class="bi bi-inbox"></i></div>
+        <p>No verifier applications yet.</p>
+      </div>
+
+      <div class="row g-4" *ngIf="!isLoadingApps && verifierApplications.length > 0">
+        <div class="col-12" *ngFor="let app of verifierApplications">
+          <div class="verifier-card card"
+               [ngClass]="{'border-warning': app.status==='PENDING','border-success': app.status==='APPROVED','border-danger': app.status==='REJECTED'}">
+            <div class="verifier-card-header">
+              <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                  <div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:1.3rem;">
+                    <i class="bi bi-person-fill"></i>
+                  </div>
+                  <div>
+                    <h5 class="fw-bold mb-0">{{ app.name }}</h5>
+                    <span class="small opacity-75">{{ app.email }} · {{ app.phone }}</span>
+                  </div>
+                </div>
+                <span class="badge fs-6 px-3 py-2"
+                      [ngClass]="{'bg-warning text-dark': app.status==='PENDING','bg-success': app.status==='APPROVED','bg-danger': app.status==='REJECTED'}">
+                  {{ app.status }}
+                </span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="row g-3 mb-3 small">
+                <div class="col-md-3 col-6"><span class="text-muted">Age</span><br/><strong>{{ app.age }} years</strong></div>
+                <div class="col-md-3 col-6"><span class="text-muted">Qualification</span><br/><strong>{{ app.qualification }}</strong></div>
+                <div class="col-md-3 col-6"><span class="text-muted">Experience</span><br/><strong>{{ app.experienceYears }} yr(s)</strong></div>
+                <div class="col-md-3 col-6"><span class="text-muted">Applied</span><br/><strong>{{ app.submittedAt | date:'dd MMM yyyy' }}</strong></div>
+                <div class="col-12">
+                  <span class="text-muted">Domains</span><br/>
+                  <span class="cat-badge me-1 mb-1" *ngFor="let d of app.domainsInterested.split(',')">{{ d.trim() }}</span>
+                </div>
+                <div class="col-12"><span class="text-muted">Motivation</span><br/><p class="mb-0">{{ app.motivation }}</p></div>
+                <div class="col-12" *ngIf="app.portfolioUrl">
+                  <span class="text-muted">Portfolio</span><br/>
+                  <a [href]="app.portfolioUrl" target="_blank" rel="noopener" class="text-primary small">{{ app.portfolioUrl }}</a>
+                </div>
+                <div class="col-12" *ngIf="app.adminRemarks"><span class="text-muted">Admin Remarks</span><br/><em>{{ app.adminRemarks }}</em></div>
+              </div>
+              <div *ngIf="app.status === 'PENDING'" class="card bg-light border-0 p-3 rounded-3">
+                <h6 class="fw-semibold mb-2"><i class="bi bi-chat-left-text me-2 text-primary"></i>Decision</h6>
+                <div class="mb-3">
+                  <label class="form-label small fw-semibold text-muted">Remarks (required for rejection)</label>
+                  <textarea class="form-control form-control-sm" rows="2" placeholder="Enter remarks or rejection reason…"
+                            [(ngModel)]="appRemarks[app.applicationId]"></textarea>
+                </div>
+                <div class="d-flex gap-2">
+                  <button class="btn btn-success flex-fill" (click)="approveApplication(app.applicationId)"
+                          [disabled]="approveLoading[app.applicationId] || rejectLoading[app.applicationId]">
+                    <span *ngIf="approveLoading[app.applicationId]" class="spinner-border spinner-border-sm me-1"></span>
+                    <i *ngIf="!approveLoading[app.applicationId]" class="bi bi-check-lg me-1"></i>Approve &amp; Send Credentials
                   </button>
-                  <button class="btn btn-danger btn-sm"
-                          (click)="stopAuction(auction.auctionId)"
-                          [disabled]="auctionActionLoading[auction.auctionId] || auction.status !== 'LIVE'">
-                    <span *ngIf="auctionActionLoading[auction.auctionId]" class="spinner-border spinner-border-sm"></span>
-                    <span *ngIf="!auctionActionLoading[auction.auctionId]"><i class="bi bi-stop-fill me-1"></i>Stop</span>
+                  <button class="btn btn-danger flex-fill" (click)="rejectApplication(app.applicationId)"
+                          [disabled]="rejectLoading[app.applicationId] || approveLoading[app.applicationId]">
+                    <span *ngIf="rejectLoading[app.applicationId]" class="spinner-border spinner-border-sm me-1"></span>
+                    <i *ngIf="!rejectLoading[app.applicationId]" class="bi bi-x-lg me-1"></i>Reject
                   </button>
                 </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 

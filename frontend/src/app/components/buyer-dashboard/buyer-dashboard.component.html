@@ -1,0 +1,212 @@
+<div class="page-wrapper">
+  <div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 fade-in-up">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon">
+          <i class="bi bi-trophy-fill" style="font-size:1.6rem; color:#f59e0b;"></i>
+        </div>
+        <div>
+          <h3 class="fw-black mb-0" style="color:#1e293b;">My Bid History</h3>
+          <p class="text-muted small mb-0">Track every auction you've participated in</p>
+        </div>
+      </div>
+      <button class="btn btn-outline-primary btn-sm fw-semibold" (click)="loadBidHistory()" [disabled]="isLoading">
+        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" style="width:3rem;height:3rem;" role="status"></div>
+      <p class="text-muted mt-3 fw-medium">Loading your bid history...</p>
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-danger d-flex align-items-center gap-2 fade-in-up" *ngIf="errorMessage && !isLoading">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !errorMessage">
+
+      <!-- Stats Cards -->
+      <div class="row g-3 mb-4 fade-in-up">
+        <div class="col-6 col-md-3">
+          <div class="stat-card stat-total">
+            <div class="stat-icon"><i class="bi bi-collection"></i></div>
+            <div class="stat-value">{{ totalParticipated }}</div>
+            <div class="stat-label">Total Participated</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card stat-won">
+            <div class="stat-icon"><i class="bi bi-trophy-fill"></i></div>
+            <div class="stat-value">{{ wonCount }}</div>
+            <div class="stat-label">Auctions Won</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card stat-spent">
+            <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+            <div class="stat-value small-val">{{ formatCurrency(totalSpent) }}</div>
+            <div class="stat-label">Total Spent (Won)</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card stat-refund">
+            <div class="stat-icon"><i class="bi bi-arrow-return-left"></i></div>
+            <div class="stat-value small-val">{{ formatCurrency(totalRefunded) }}</div>
+            <div class="stat-label">Total Refunded</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div class="filter-bar mb-4 fade-in-up">
+        <button class="filter-tab" [class.active]="activeFilter === 'ALL'" (click)="setFilter('ALL')">
+          All <span class="tab-count">{{ totalParticipated }}</span>
+        </button>
+        <button class="filter-tab filter-tab-live" [class.active]="activeFilter === 'LIVE'" (click)="setFilter('LIVE')">
+          <span class="live-dot-sm me-1"></span>Live <span class="tab-count">{{ liveCount }}</span>
+        </button>
+        <button class="filter-tab filter-tab-won" [class.active]="activeFilter === 'WON'" (click)="setFilter('WON')">
+          Won <span class="tab-count">{{ wonCount }}</span>
+        </button>
+        <button class="filter-tab filter-tab-outbid" [class.active]="activeFilter === 'OUTBID'" (click)="setFilter('OUTBID')">
+          Outbid <span class="tab-count">{{ outbidCount }}</span>
+        </button>
+      </div>
+
+      <!-- Empty State -->
+      <div class="text-center py-5 fade-in-up" *ngIf="filteredBids.length === 0">
+        <i class="bi bi-inbox" style="font-size:4rem;color:#cbd5e1;"></i>
+        <h5 class="fw-bold text-muted mt-3">
+          {{ totalParticipated === 0 ? 'No Bids Yet' : 'No Results for This Filter' }}
+        </h5>
+        <p class="text-muted small">
+          {{ totalParticipated === 0
+            ? 'You haven\'t placed any bids yet. Browse live auctions to start bidding!'
+            : 'Try selecting a different filter.' }}
+        </p>
+        <a *ngIf="totalParticipated === 0" routerLink="/home" class="btn btn-primary fw-semibold px-4 mt-2">
+          <i class="bi bi-lightning-fill me-2"></i>Browse Auctions
+        </a>
+      </div>
+
+      <!-- Bid Cards -->
+      <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4" *ngIf="filteredBids.length > 0">
+        <div class="col fade-in-up" *ngFor="let bid of filteredBids; let i = index"
+             [style.animation-delay]="(i * 0.06) + 's'">
+          <div class="bid-card" [ngClass]="{
+            'bid-card-won':    bid.won,
+            'bid-card-live':   bid.auctionStatus === 'LIVE',
+            'bid-card-outbid': !bid.won && bid.auctionStatus === 'ENDED'
+          }">
+
+            <!-- Image -->
+            <div class="bid-img-wrapper">
+              <img [src]="bid.imageUrl || 'assets/no-image.svg'"
+                   [alt]="bid.productName"
+                   class="bid-img"
+                   (error)="$any($event.target).src='assets/no-image.svg'" />
+              <div class="bid-img-gradient"></div>
+
+              <!-- Outcome Badge -->
+              <span class="outcome-badge" [ngClass]="{
+                'badge-won':     bid.won,
+                'badge-live':    !bid.won && bid.auctionStatus === 'LIVE' && isLeading(bid),
+                'badge-outbid':  !bid.won && (bid.auctionStatus === 'ENDED' || (!isLeading(bid) && bid.auctionStatus === 'LIVE'))
+              }">
+                <i class="bi me-1" [ngClass]="{
+                  'bi-trophy-fill':    bid.won,
+                  'bi-lightning-fill': !bid.won && bid.auctionStatus === 'LIVE' && isLeading(bid),
+                  'bi-x-circle-fill':  !bid.won && bid.auctionStatus === 'ENDED',
+                  'bi-arrow-up-circle-fill': !bid.won && bid.auctionStatus === 'LIVE' && !isLeading(bid)
+                }"></i>
+                {{ outcomeLabel(bid) }}
+              </span>
+            </div>
+
+            <!-- Body -->
+            <div class="bid-body">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="category-chip-sm">{{ bid.categoryName }}</span>
+              </div>
+
+              <h6 class="fw-bold mb-1 text-truncate" style="color:#1e293b;">{{ bid.productName }}</h6>
+              <p class="text-muted small mb-3 description-clamp">{{ bid.description }}</p>
+
+              <!-- Financials Grid -->
+              <div class="financials-grid mb-3">
+                <div class="fin-item">
+                  <span class="fin-label">Starting Price</span>
+                  <span class="fin-value text-muted">{{ formatCurrency(bid.startingPrice) }}</span>
+                </div>
+                <div class="fin-item">
+                  <span class="fin-label">My Bid</span>
+                  <span class="fin-value fw-bold" [ngClass]="bid.won ? 'text-success' : 'text-primary'">
+                    {{ formatCurrency(bid.myMaxBid) }}
+                  </span>
+                </div>
+                <div class="fin-item" *ngIf="bid.auctionStatus === 'ENDED'">
+                  <span class="fin-label">Final Price</span>
+                  <span class="fin-value fw-bold" style="color:#1e3a5f;">{{ formatCurrency(bid.finalBid) }}</span>
+                </div>
+                <div class="fin-item" *ngIf="bid.auctionStatus === 'LIVE'">
+                  <span class="fin-label">Current Bid</span>
+                  <span class="fin-value fw-bold text-danger">{{ formatCurrency(bid.finalBid) }}</span>
+                </div>
+              </div>
+
+              <!-- Outcome Summary Box -->
+              <div class="outcome-box" [ngClass]="{
+                'outcome-won':    bid.won,
+                'outcome-outbid': !bid.won && bid.auctionStatus === 'ENDED',
+                'outcome-live':   bid.auctionStatus === 'LIVE'
+              }">
+                <!-- WON -->
+                <ng-container *ngIf="bid.won">
+                  <i class="bi bi-trophy-fill me-2" style="color:#f59e0b;"></i>
+                  <span>You won this item! Paid <strong>{{ formatCurrency(bid.myMaxBid) }}</strong></span>
+                </ng-container>
+                <!-- OUTBID -->
+                <ng-container *ngIf="!bid.won && bid.auctionStatus === 'ENDED'">
+                  <i class="bi bi-arrow-return-left me-2 text-primary"></i>
+                  <span><strong>{{ formatCurrency(bid.myMaxBid) }}</strong> refunded to wallet.
+                    Won by <strong>{{ bid.winner || 'Unknown' }}</strong></span>
+                </ng-container>
+                <!-- LIVE — leading -->
+                <ng-container *ngIf="bid.auctionStatus === 'LIVE' && isLeading(bid)">
+                  <span class="live-dot-sm me-2"></span>
+                  <span>You're the highest bidder at <strong>{{ formatCurrency(bid.myMaxBid) }}</strong></span>
+                </ng-container>
+                <!-- LIVE — outbid -->
+                <ng-container *ngIf="bid.auctionStatus === 'LIVE' && !isLeading(bid)">
+                  <i class="bi bi-exclamation-circle-fill me-2 text-warning"></i>
+                  <span>You've been outbid! Current: <strong>{{ formatCurrency(bid.finalBid) }}</strong></span>
+                </ng-container>
+              </div>
+
+              <!-- Seller -->
+              <p class="text-muted x-small mt-2 mb-3">
+                <i class="bi bi-shop me-1"></i>Seller: {{ bid.sellerName }}
+              </p>
+
+              <!-- CTA button for live auctions -->
+              <button *ngIf="bid.auctionStatus === 'LIVE'"
+                      class="btn btn-live w-100 fw-bold"
+                      (click)="goToAuction(bid)">
+                <i class="bi bi-lightning-fill me-2"></i>
+                {{ isLeading(bid) ? 'Defend Your Bid' : 'Bid Again' }}
+              </button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+  </div>
+</div>

@@ -1,6 +1,5 @@
 package com.cts.mfrp.au.config;
 
-
 import com.cts.mfrp.au.handler.BroadcastWebSocketHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;

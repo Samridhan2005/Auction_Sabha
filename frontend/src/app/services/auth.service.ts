@@ -11,6 +11,7 @@ export class AuthService {
   private readonly ROLE_KEY = 'auction_role';
   private readonly USER_ID_KEY = 'auction_user_id';
   private readonly EMAIL_KEY = 'auction_email';
+  private readonly NAME_KEY = 'auction_name';
 
   constructor(private http: HttpClient) {}
 
@@ -22,6 +23,9 @@ export class AuthService {
         localStorage.setItem(this.TOKEN_KEY, response.token);
         localStorage.setItem(this.ROLE_KEY, response.role);
         localStorage.setItem(this.USER_ID_KEY, response.userId.toString());
+        if (response.name) {
+          localStorage.setItem(this.NAME_KEY, response.name);
+        }
         const email = this.decodeEmailFromToken(response.token);
         if (email) {
           localStorage.setItem(this.EMAIL_KEY, email);
@@ -46,6 +50,7 @@ export class AuthService {
     localStorage.removeItem(this.ROLE_KEY);
     localStorage.removeItem(this.USER_ID_KEY);
     localStorage.removeItem(this.EMAIL_KEY);
+    localStorage.removeItem(this.NAME_KEY);
   }
 
   // --- New Password Management Methods ---
@@ -99,6 +104,14 @@ export class AuthService {
 
   getEmail(): string | null {
     return localStorage.getItem(this.EMAIL_KEY);
+  }
+
+  getUserName(): string | null {
+    return localStorage.getItem(this.NAME_KEY);
+  }
+
+  setUserName(name: string): void {
+    localStorage.setItem(this.NAME_KEY, name);
   }
 
   isLoggedIn(): boolean {

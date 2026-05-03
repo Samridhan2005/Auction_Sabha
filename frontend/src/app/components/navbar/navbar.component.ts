@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { UserService } from '../../services/user.service'; // Added UserService
+import { SearchService } from '../../services/search.service';
 
 @Component({
   selector: 'app-navbar',
@@ -9,38 +9,43 @@ import { UserService } from '../../services/user.service'; // Added UserService
   styleUrls: ['./navbar.component.css']
 })
 export class NavbarComponent {
-  
-  // Controls the profile modal visibility
+
   isProfileVisible: boolean = false;
+  navSearchText: string = '';
 
   constructor(
-    public authService: AuthService, 
+    public authService: AuthService,
     private router: Router,
-    private userService: UserService // Injected UserService
+    private searchService: SearchService
   ) {}
 
-  // Getter for Auth Role (Buyer, Seller, etc.)
   get role(): string | null {
     return this.authService.getRole();
   }
 
-  // Getter for Auth Email
   get email(): string | null {
     return this.authService.getEmail();
   }
 
-  /**
-   * Expert Tip: Use a getter to pull the updated name from the Service.
-   * If you use 'this.userService.getProfile().name' in your HTML,
-   * it will update instantly whenever you click 'Update Profile'.
-   */
   get userName(): string {
-    return this.userService.getProfile().name;
+    return this.authService.getUserName() || this.authService.getEmail() || '';
   }
 
-  // Toggles the Profile Overlay
   toggleProfile(): void {
     this.isProfileVisible = !this.isProfileVisible;
+  }
+
+  onNavSearch(value: string): void {
+    this.navSearchText = value;
+    this.searchService.setQuery(value);
+    if (!this.router.url.startsWith('/home')) {
+      void this.router.navigate(['/home']);
+    }
+  }
+
+  clearNavSearch(): void {
+    this.navSearchText = '';
+    this.searchService.clear();
   }
 
   logout(): void {

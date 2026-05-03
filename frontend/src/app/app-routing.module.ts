@@ -11,15 +11,18 @@ import { ProductSubmitComponent } from './components/product-submit/product-subm
 import { AdminComponent } from './components/admin/admin.component';
 import { WalletComponent } from './components/wallet/wallet.component';
 import { VerifierComponent } from './components/verifier/verifier.component';
-// Import the new components
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ChangePasswordComponent } from './components/change-password/change-password.component';
+import { VerifierRegisterComponent } from './components/verifier-register/verifier-register.component';
+import { SellerDashboardComponent } from './components/seller-dashboard/seller-dashboard.component';
+import { BuyerDashboardComponent } from './components/buyer-dashboard/buyer-dashboard.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent }, // Public route
+  { path: 'forgot-password', component: ForgotPasswordComponent },
+  { path: 'verifier-register', component: VerifierRegisterComponent },
   {
     path: 'home',
     component: HomeComponent,
@@ -63,6 +66,18 @@ const routes: Routes = [
     component: VerifierComponent,
     canActivate: [RoleGuard],
     data: { roles: ['VERIFIER'] }
+  },
+  {
+    path: 'seller-dashboard',
+    component: SellerDashboardComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['SELLER'] }
+  },
+  {
+    path: 'buyer-dashboard',
+    component: BuyerDashboardComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['BUYER'] }
   },
   { path: '**', redirectTo: 'home' }
 ];

@@ -1,0 +1,252 @@
+<div class="seller-dash-bg">
+  <div class="container py-4">
+
+    <!-- Header -->
+    <div class="dash-header mb-4">
+      <div class="d-flex align-items-center gap-3">
+        <div class="dash-icon-wrap">
+          <i class="bi bi-shop dash-icon"></i>
+        </div>
+        <div>
+          <h2 class="fw-black mb-0" style="letter-spacing:-0.5px;">My Seller Dashboard</h2>
+          <p class="text-muted mb-0 small">Track your listed products, auction results, and earnings</p>
+        </div>
+      </div>
+      <button class="btn btn-outline-primary btn-sm fw-semibold" (click)="loadMyProducts()" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-1"></span>
+        <i *ngIf="!isLoading" class="bi bi-arrow-clockwise me-1"></i>
+        Refresh
+      </button>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="row g-3 mb-4" *ngIf="!isLoading && products.length > 0">
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ede9fe;color:#7c3aed;">
+            <i class="bi bi-collection"></i>
+          </div>
+          <div class="stat-value">{{ products.length }}</div>
+          <div class="stat-label">Total Listed</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef9c3;color:#ca8a04;">
+            <i class="bi bi-hourglass-split"></i>
+          </div>
+          <div class="stat-value">{{ pendingCount }}</div>
+          <div class="stat-label">Under Review</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fef2f2;color:#dc2626;">
+            <i class="bi bi-broadcast-pin"></i>
+          </div>
+          <div class="stat-value">{{ liveCount }}</div>
+          <div class="stat-label">Live Now</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f0fdf4;color:#16a34a;">
+            <i class="bi bi-trophy"></i>
+          </div>
+          <div class="stat-value">{{ soldCount }}</div>
+          <div class="stat-label">Sold</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#eff6ff;color:#1d4ed8;">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <div class="stat-value small-stat">{{ formatCurrency(totalEarnings) }}</div>
+          <div class="stat-label">Total Earned</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ecfdf5;color:#059669;">
+            <i class="bi bi-graph-up-arrow"></i>
+          </div>
+          <div class="stat-value small-stat">{{ formatCurrency(totalProfit) }}</div>
+          <div class="stat-label">Total Profit</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-triangle-fill"></i>{{ errorMessage }}
+    </div>
+
+    <!-- Loading -->
+    <div class="text-center py-5" *ngIf="isLoading">
+      <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+      <p class="mt-3 text-muted">Loading your products…</p>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state text-center py-5" *ngIf="!isLoading && products.length === 0 && !errorMessage">
+      <i class="bi bi-box-seam" style="font-size:4rem;color:#c7d2fe;"></i>
+      <h5 class="mt-3 fw-bold text-muted">No products listed yet</h5>
+      <p class="text-muted small">Submit your first product to get started.</p>
+      <a routerLink="/submit-product" class="btn btn-primary fw-semibold mt-1">
+        <i class="bi bi-plus-circle me-2"></i>List a Product
+      </a>
+    </div>
+
+    <!-- Filter Tabs + Product Cards -->
+    <ng-container *ngIf="!isLoading && products.length > 0">
+
+      <!-- Filter buttons -->
+      <div class="filter-row mb-3">
+        <button class="filter-btn" [class.active]="filterStatus==='ALL'"      (click)="setFilter('ALL')">
+          All <span class="filter-badge">{{ products.length }}</span>
+        </button>
+        <button class="filter-btn" [class.active]="filterStatus==='PENDING'"  (click)="setFilter('PENDING')"
+                *ngIf="pendingCount > 0">
+          Pending <span class="filter-badge warn">{{ pendingCount }}</span>
+        </button>
+        <button class="filter-btn" [class.active]="filterStatus==='APPROVED'" (click)="setFilter('APPROVED')"
+                *ngIf="approvedCount > 0">
+          Scheduled <span class="filter-badge info">{{ approvedCount }}</span>
+        </button>
+        <button class="filter-btn" [class.active]="filterStatus==='LIVE'"     (click)="setFilter('LIVE')"
+                *ngIf="liveCount > 0">
+          <span class="live-dot-xs me-1"></span>Live <span class="filter-badge danger">{{ liveCount }}</span>
+        </button>
+        <button class="filter-btn" [class.active]="filterStatus==='SOLD'"     (click)="setFilter('SOLD')"
+                *ngIf="soldCount > 0">
+          Sold <span class="filter-badge success">{{ soldCount }}</span>
+        </button>
+        <button class="filter-btn" [class.active]="filterStatus==='REJECTED'" (click)="setFilter('REJECTED')"
+                *ngIf="rejectedCount > 0">
+          Rejected <span class="filter-badge muted">{{ rejectedCount }}</span>
+        </button>
+      </div>
+
+      <!-- No items in this filter -->
+      <div class="text-center py-4 text-muted" *ngIf="filteredProducts.length === 0">
+        <i class="bi bi-funnel" style="font-size:2rem;opacity:0.3;"></i>
+        <p class="mt-2 small">No products in this category.</p>
+      </div>
+
+      <!-- Product Cards -->
+      <div class="product-card-list">
+        <div class="seller-product-card" *ngFor="let p of filteredProducts">
+
+          <!-- Image -->
+          <div class="sp-image-wrap">
+            <img
+              [src]="p.imageUrl || 'assets/no-image.svg'"
+              class="sp-image"
+              [alt]="p.productName"
+              (error)="$any($event.target).src='assets/no-image.svg'"
+            />
+            <!-- Auction status overlay on image -->
+            <span class="sp-auction-badge"
+                  *ngIf="p.auctionStatus"
+                  [ngClass]="{
+                    'sp-badge-live':      p.auctionStatus === 'LIVE',
+                    'sp-badge-sold':      p.auctionStatus === 'ENDED',
+                    'sp-badge-scheduled': p.auctionStatus === 'CREATED'
+                  }">
+              <span class="live-dot-xs me-1" *ngIf="p.auctionStatus === 'LIVE'"></span>
+              {{ auctionStatusLabel(p.auctionStatus) }}
+            </span>
+          </div>
+
+          <!-- Details -->
+          <div class="sp-details flex-grow-1">
+            <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-1">
+              <div>
+                <h6 class="fw-bold mb-0">{{ p.productName }}</h6>
+                <span class="sp-category-chip">
+                  <i class="bi bi-tag me-1"></i>{{ p.categoryName }}
+                </span>
+              </div>
+              <!-- Verification badge -->
+              <span class="verification-badge"
+                    [ngClass]="{
+                      'badge-pending':  p.verificationStatus === 'PENDING',
+                      'badge-approved': p.verificationStatus === 'APPROVED',
+                      'badge-rejected': p.verificationStatus === 'REJECTED'
+                    }">
+                <i class="bi me-1"
+                   [ngClass]="{
+                     'bi-hourglass-split': p.verificationStatus === 'PENDING',
+                     'bi-patch-check-fill': p.verificationStatus === 'APPROVED',
+                     'bi-x-circle-fill': p.verificationStatus === 'REJECTED'
+                   }"></i>
+                {{ p.verificationStatus }}
+              </span>
+            </div>
+
+            <p class="sp-description text-muted mb-2">{{ p.description | slice:0:100 }}{{ p.description.length > 100 ? '…' : '' }}</p>
+
+            <!-- Rejection reason -->
+            <div class="sp-remarks" *ngIf="p.verificationStatus === 'REJECTED' && p.adminRemarks">
+              <i class="bi bi-info-circle me-1 text-danger"></i>
+              <span class="text-danger small">{{ p.adminRemarks }}</span>
+            </div>
+
+            <!-- Approved remarks (admin notes) -->
+            <div class="sp-remarks" *ngIf="p.verificationStatus === 'APPROVED' && p.adminRemarks">
+              <i class="bi bi-chat-dots me-1 text-muted"></i>
+              <span class="text-muted small">{{ p.adminRemarks }}</span>
+            </div>
+          </div>
+
+          <!-- Financial Panel -->
+          <div class="sp-financials">
+            <div class="fin-row">
+              <span class="fin-label">Starting Price</span>
+              <span class="fin-value text-muted">{{ formatCurrency(p.startingPrice) }}</span>
+            </div>
+
+            <ng-container *ngIf="p.auctionStatus === 'LIVE' || p.auctionStatus === 'ENDED'">
+              <div class="fin-divider"></div>
+              <div class="fin-row">
+                <span class="fin-label">{{ p.auctionStatus === 'ENDED' ? 'Sold For' : 'Current Bid' }}</span>
+                <span class="fin-value fw-bold"
+                      [ngClass]="p.auctionStatus === 'ENDED' ? 'text-success' : 'text-primary'">
+                  {{ formatCurrency(p.finalBid) }}
+                </span>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="p.auctionStatus === 'ENDED'">
+              <div class="fin-row">
+                <span class="fin-label">Profit</span>
+                <span class="fin-value profit-value">
+                  <i class="bi bi-arrow-up-right me-1"></i>{{ formatCurrency(p.profit) }}
+                </span>
+              </div>
+              <div class="fin-divider"></div>
+              <div class="fin-row" *ngIf="p.winner">
+                <span class="fin-label"><i class="bi bi-trophy-fill me-1" style="color:#f59e0b;"></i>Winner</span>
+                <span class="fin-value fw-bold">{{ p.winner }}</span>
+              </div>
+              <div class="fin-row text-muted" *ngIf="!p.winner">
+                <span class="small">No bids placed</span>
+              </div>
+            </ng-container>
+
+            <ng-container *ngIf="p.auctionStatus === 'LIVE' && p.winner">
+              <div class="fin-row">
+                <span class="fin-label">Leader</span>
+                <span class="fin-value fw-bold">{{ p.winner }}</span>
+              </div>
+            </ng-container>
+          </div>
+
+        </div><!-- /seller-product-card -->
+      </div><!-- /product-card-list -->
+
+    </ng-container>
+
+  </div>
+</div>

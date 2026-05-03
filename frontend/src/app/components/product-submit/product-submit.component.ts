@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProductService } from '../../services/product.service';
 import { AuthService } from '../../services/auth.service';
+import { AuctionService, SlotInfo } from '../../services/auction.service';
 import { Category } from '../../models/product.model';
 
 @Component({
@@ -16,11 +17,15 @@ export class ProductSubmitComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   categories: Category[] = [];
+  today = new Date().toISOString().split('T')[0];
+  slots: SlotInfo[] = [];
+  slotsLoading = false;
 
   constructor(
     private fb: FormBuilder,
     private productService: ProductService,
     private authService: AuthService,
+    private auctionService: AuctionService,
     private router: Router
   ) {}
 
@@ -31,45 +36,38 @@ export class ProductSubmitComponent implements OnInit {
     });
 
     this.submitForm = this.fb.group({
-      productName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
-      description: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
-      imageUrl: ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
+      productName:   ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      description:   ['', [Validators.required, Validators.minLength(10), Validators.maxLength(500)]],
+      imageUrl:      ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
+      documentsUrl:  ['', [Validators.required, Validators.pattern(/^https?:\/\/.+/)]],
       startingPrice: [null, [Validators.required, Validators.min(1)]],
-      categoryId: [null, [Validators.required]],
-      auctionStartDate: ['', [Validators.required]],
-      auctionEndDate: ['', [Validators.required]],
-      termsAccepted: [false, [Validators.requiredTrue]],
-      verificationDoc: [null, [Validators.required]] // Mandatory File
-    }, { validators: this.dateRangeValidator });
+      categoryId:    [null, [Validators.required]],
+      preferredDate: ['', [Validators.required]],
+      preferredSlot: [null, [Validators.required]],
+      termsAccepted: [false, [Validators.requiredTrue]]
+    });
   }
 
-  // Handle File selection
-  onFileChange(event: any): void {
-    if (event.target.files.length > 0) {
-      const file = event.target.files[0];
-      this.submitForm.patchValue({
-        verificationDoc: file
-      });
-      this.submitForm.get('verificationDoc')?.updateValueAndValidity();
-    }
-  }
-
-  dateRangeValidator(group: AbstractControl): ValidationErrors | null {
-    const start = group.get('auctionStartDate')?.value;
-    const end = group.get('auctionEndDate')?.value;
-    if (!start || !end) return null;
-    if (new Date(start) < new Date()) return { startInPast: true };
-    if (new Date(end) <= new Date(start)) return { endBeforeStart: true };
-    return null;
-  }
-
-  // Getters for template
-  get productNameCtrl() { return this.submitForm.get('productName'); }
-  get descriptionCtrl() { return this.submitForm.get('description'); }
-  get imageUrlCtrl() { return this.submitForm.get('imageUrl'); }
+  get productNameCtrl()   { return this.submitForm.get('productName'); }
+  get descriptionCtrl()   { return this.submitForm.get('description'); }
+  get imageUrlCtrl()      { return this.submitForm.get('imageUrl'); }
+  get documentsUrlCtrl()  { return this.submitForm.get('documentsUrl'); }
   get startingPriceCtrl() { return this.submitForm.get('startingPrice'); }
-  get categoryIdCtrl() { return this.submitForm.get('categoryId'); }
-  get verificationDocCtrl() { return this.submitForm.get('verificationDoc'); }
+  get categoryIdCtrl()    { return this.submitForm.get('categoryId'); }
+  get preferredDateCtrl() { return this.submitForm.get('preferredDate'); }
+  get preferredSlotCtrl() { return this.submitForm.get('preferredSlot'); }
+
+  onDateChange(): void {
+    const dateVal = this.preferredDateCtrl?.value;
+    this.preferredSlotCtrl?.reset();
+    this.slots = [];
+    if (!dateVal) return;
+    this.slotsLoading = true;
+    this.auctionService.getAvailableSlots(dateVal).subscribe({
+      next: (s) => { this.slots = s; this.slotsLoading = false; },
+      error: () => { this.slotsLoading = false; }
+    });
+  }
 
   onSubmit(): void {
     if (this.submitForm.invalid) {
@@ -85,27 +83,21 @@ export class ProductSubmitComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
-    
-    // Preparation for API (Using FormData to handle File + Text)
-    const formData = new FormData();
-    formData.append('sellerId', sellerId.toString());
-    formData.append('productName', this.submitForm.value.productName);
-    formData.append('description', this.submitForm.value.description);
-    formData.append('imageUrl', this.submitForm.value.imageUrl);
-    formData.append('startingPrice', this.submitForm.value.startingPrice);
-    formData.append('categoryId', this.submitForm.value.categoryId);
-    formData.append('verificationDoc', this.submitForm.value.verificationDoc);
 
     this.productService.submitProduct(sellerId, this.submitForm.value).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Product and Documents submitted for review!';
+        this.successMessage = 'Product submitted for review! A verifier will approve and assign a slot.';
         this.submitForm.reset();
         setTimeout(() => void this.router.navigate(['/products']), 2500);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || 'Submission failed.';
+        if (err.status === 0) {
+          this.errorMessage = 'Cannot connect to server. Make sure the backend is running.';
+        } else {
+          this.errorMessage = err.error?.message || err.error?.error || `Submission failed (${err.status}).`;
+        }
       }
     });
   }

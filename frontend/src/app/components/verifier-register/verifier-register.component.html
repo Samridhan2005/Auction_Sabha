@@ -1,0 +1,168 @@
+<div class="auth-wrapper">
+  <div class="auth-card card p-4 p-md-5 shadow-lg" style="max-width: 680px;">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+      <div class="mb-3">
+        <i class="bi bi-clipboard-check display-4 text-success"></i>
+      </div>
+      <h2 class="fw-bold text-success mb-1">Apply as Product Verifier</h2>
+      <p class="text-muted">Fill in your details. Admin will review and send you credentials if approved.</p>
+    </div>
+
+    <!-- Alerts -->
+    <div class="alert alert-danger d-flex align-items-center gap-2" *ngIf="errorMessage">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ errorMessage }}</span>
+    </div>
+    <div class="alert alert-success d-flex align-items-center gap-2" *ngIf="successMessage">
+      <i class="bi bi-check-circle-fill"></i>
+      <span>{{ successMessage }}</span>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate *ngIf="!successMessage">
+
+      <!-- Row 1: Name + Email -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Full Name</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input type="text" class="form-control" formControlName="name" placeholder="John Doe"
+                   [class.is-invalid]="f['name'].invalid && f['name'].touched" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['name'].errors?.['required']">Name is required.</span>
+              <span *ngIf="f['name'].errors?.['minlength']">At least 2 characters.</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Email Address</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input type="email" class="form-control" formControlName="email" placeholder="you@example.com"
+                   [class.is-invalid]="f['email'].invalid && f['email'].touched" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['email'].errors?.['required']">Email is required.</span>
+              <span *ngIf="f['email'].errors?.['email']">Enter a valid email.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Phone + Age -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Phone Number</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+            <input type="tel" class="form-control" formControlName="phone" placeholder="10-15 digit number"
+                   [class.is-invalid]="f['phone'].invalid && f['phone'].touched" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['phone'].errors?.['required']">Phone is required.</span>
+              <span *ngIf="f['phone'].errors?.['pattern']">Enter a valid phone number.</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Age</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-calendar-person"></i></span>
+            <input type="number" class="form-control" formControlName="age" placeholder="e.g. 28"
+                   [class.is-invalid]="f['age'].invalid && f['age'].touched" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['age'].errors?.['required']">Age is required.</span>
+              <span *ngIf="f['age'].errors?.['min']">Minimum age is 18.</span>
+              <span *ngIf="f['age'].errors?.['max']">Maximum age is 75.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Qualification + Experience -->
+      <div class="row g-3 mb-3">
+        <div class="col-md-7">
+          <label class="form-label fw-semibold">Highest Qualification</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-mortarboard"></i></span>
+            <select class="form-select" formControlName="qualification"
+                    [class.is-invalid]="f['qualification'].invalid && f['qualification'].touched">
+              <option value="">-- Select qualification --</option>
+              <option *ngFor="let q of qualificationOptions" [value]="q">{{ q }}</option>
+            </select>
+            <div class="invalid-feedback">Please select your qualification.</div>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <label class="form-label fw-semibold">Years of Experience</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-briefcase"></i></span>
+            <input type="number" class="form-control" formControlName="experienceYears" placeholder="e.g. 5"
+                   [class.is-invalid]="f['experienceYears'].invalid && f['experienceYears'].touched" />
+            <div class="invalid-feedback">
+              <span *ngIf="f['experienceYears'].errors?.['required']">Required.</span>
+              <span *ngIf="f['experienceYears'].errors?.['min']">Cannot be negative.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Domains Interested -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Domains Interested In</label>
+        <p class="text-muted small mb-2">Select all categories you can verify products for.</p>
+        <div class="row g-2">
+          <div class="col-6 col-md-3" *ngFor="let domain of domainOptions">
+            <div class="form-check border rounded p-2 h-100">
+              <input class="form-check-input" type="checkbox"
+                     [id]="'domain_' + domain"
+                     [value]="domain"
+                     (change)="onDomainChange($event)" />
+              <label class="form-check-label small" [for]="'domain_' + domain">{{ domain }}</label>
+            </div>
+          </div>
+        </div>
+        <div class="text-danger small mt-1" *ngIf="f['domainsInterested'].invalid && f['domainsInterested'].touched">
+          Please select at least one domain.
+        </div>
+      </div>
+
+      <!-- Motivation -->
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Why do you want to be a Verifier?</label>
+        <textarea class="form-control" formControlName="motivation" rows="4"
+                  placeholder="Describe your background, expertise, and why you are suitable to verify products (min 50 characters)..."
+                  [class.is-invalid]="f['motivation'].invalid && f['motivation'].touched"></textarea>
+        <div class="invalid-feedback">
+          <span *ngIf="f['motivation'].errors?.['required']">This field is required.</span>
+          <span *ngIf="f['motivation'].errors?.['minlength']">Please write at least 50 characters.</span>
+        </div>
+        <div class="form-text text-end">{{ form.get('motivation')?.value?.length || 0 }} characters</div>
+      </div>
+
+      <!-- Portfolio URL (optional) -->
+      <div class="mb-4">
+        <label class="form-label fw-semibold">LinkedIn / Portfolio URL <span class="text-muted fw-normal">(Optional)</span></label>
+        <div class="input-group">
+          <span class="input-group-text"><i class="bi bi-link-45deg"></i></span>
+          <input type="url" class="form-control" formControlName="portfolioUrl"
+                 placeholder="https://linkedin.com/in/yourprofile" />
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-success w-100 py-2 fw-semibold" [disabled]="isLoading">
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        <span *ngIf="!isLoading"><i class="bi bi-send me-2"></i></span>
+        {{ isLoading ? 'Submitting Application...' : 'Submit Application' }}
+      </button>
+    </form>
+
+    <!-- Login Link -->
+    <div class="text-center mt-4">
+      <p class="text-muted mb-1">Already approved? <a routerLink="/login" class="text-success fw-semibold text-decoration-none">Sign in here</a></p>
+      <p class="text-muted mb-0 small">Want a regular account? <a routerLink="/register" class="text-primary fw-semibold text-decoration-none">Register here</a></p>
+    </div>
+
+  </div>
+</div>

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -64,6 +65,12 @@ public class ProductController {
         String response = productService.validateAndPlaceBid(id, amount);
         if(response.startsWith("Error")) return ResponseEntity.badRequest().body(response);
         return ResponseEntity.ok(response);
+    }
+
+    // 6. Seller Dashboard: All products submitted by a seller with auction results
+    @GetMapping("/my-products")
+    public ResponseEntity<List<Map<String, Object>>> getMyProducts(@RequestParam int sellerId) {
+        return ResponseEntity.ok(productService.getSellerProducts(sellerId));
     }
 
     @PostMapping("/submit")

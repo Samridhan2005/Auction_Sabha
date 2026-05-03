@@ -27,6 +27,9 @@ import { AdminComponent } from './components/admin/admin.component';
 import { WalletComponent } from './components/wallet/wallet.component';
 import { VerifierComponent } from './components/verifier/verifier.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { VerifierRegisterComponent } from './components/verifier-register/verifier-register.component';
+import { SellerDashboardComponent } from './components/seller-dashboard/seller-dashboard.component';
+import { BuyerDashboardComponent } from './components/buyer-dashboard/buyer-dashboard.component';
 
 @NgModule({
   declarations: [
@@ -43,7 +46,10 @@ import { ProfileComponent } from './components/profile/profile.component';
     VerifierComponent,
     ForgotPasswordComponent,
     ChangePasswordComponent,
-    ProfileComponent
+    ProfileComponent,
+    VerifierRegisterComponent,
+    SellerDashboardComponent,
+    BuyerDashboardComponent
   ],
   imports: [
     BrowserModule,

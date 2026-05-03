@@ -10,11 +10,13 @@ public class LoginResponse {
     private String role;
     private String token;
     private int userId;
+    private String name;
 
-    public LoginResponse(String message, String role, String token, int userId) {
+    public LoginResponse(String message, String role, String token, int userId, String name) {
         this.message = message;
         this.role = role;
         this.token = token;
         this.userId = userId;
+        this.name = name;
     }
 }

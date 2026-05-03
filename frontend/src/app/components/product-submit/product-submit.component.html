@@ -6,7 +6,7 @@
           <i class="bi bi-plus-circle-fill text-primary fs-3 me-3"></i>
           <div>
             <h3 class="fw-bold mb-0">Submit a Product</h3>
-            <p class="text-muted mb-0 small">Your product and documents will be reviewed by an admin.</p>
+            <p class="text-muted mb-0 small">Your product and documents will be reviewed by a verifier.</p>
           </div>
         </div>
 
@@ -23,10 +23,10 @@
           <div class="col-md-7">
             <div class="card p-4 shadow-sm">
               <form [formGroup]="submitForm" (ngSubmit)="onSubmit()" novalidate>
-                
+
                 <div class="mb-3">
                   <label class="form-label fw-semibold">Product Name <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" formControlName="productName" 
+                  <input type="text" class="form-control" formControlName="productName"
                          placeholder="e.g., Vintage Rolex Submariner"
                          [class.is-invalid]="productNameCtrl?.invalid && productNameCtrl?.touched" />
                   <div class="invalid-feedback">
@@ -39,19 +39,19 @@
                   <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
                   <textarea class="form-control" formControlName="description" rows="3"
                             [class.is-invalid]="descriptionCtrl?.invalid && descriptionCtrl?.touched"></textarea>
-                  <div class="invalid-feedback">Description (10-500 chars) is required.</div>
+                  <div class="invalid-feedback">Description (10–500 chars) is required.</div>
                   <small class="text-muted">{{ descriptionCtrl?.value?.length || 0 }}/500</small>
                 </div>
 
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Starting Price (₹) <span class="text-danger">*</span></label>
-                    <input type="number" class="form-control" formControlName="startingPrice" 
+                    <input type="number" class="form-control" formControlName="startingPrice"
                            [class.is-invalid]="startingPriceCtrl?.invalid && startingPriceCtrl?.touched" />
                   </div>
                   <div class="col-md-6 mb-3">
                     <label class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
-                    <select class="form-select" formControlName="categoryId" 
+                    <select class="form-select" formControlName="categoryId"
                             [class.is-invalid]="categoryIdCtrl?.invalid && categoryIdCtrl?.touched">
                       <option [ngValue]="null" disabled>-- Select --</option>
                       <option *ngFor="let cat of categories" [ngValue]="cat.categoryId">{{ cat.categoryName }}</option>
@@ -60,33 +60,64 @@
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Image URL <span class="text-danger">*</span></label>
-                  <input type="url" class="form-control" formControlName="imageUrl" placeholder="https://..."
+                  <label class="form-label fw-semibold">Product Image URL <span class="text-danger">*</span></label>
+                  <input type="url" class="form-control" formControlName="imageUrl"
+                         placeholder="https://drive.google.com/..."
                          [class.is-invalid]="imageUrlCtrl?.invalid && imageUrlCtrl?.touched" />
+                  <small class="text-muted">Google Drive or any public image link.</small>
                 </div>
 
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Upload Verification Document <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold">
+                    Documents / Certificates URL <span class="text-danger">*</span>
+                  </label>
                   <div class="input-group">
-                    <input type="file" class="form-control" id="docUpload" (change)="onFileChange($event)"
-                           [class.is-invalid]="verificationDocCtrl?.invalid && verificationDocCtrl?.touched" />
-                    <label class="input-group-text" for="docUpload"><i class="bi bi-upload"></i></label>
+                    <span class="input-group-text"><i class="bi bi-file-earmark-text"></i></span>
+                    <input type="url" class="form-control" formControlName="documentsUrl"
+                           placeholder="https://drive.google.com/..."
+                           [class.is-invalid]="documentsUrlCtrl?.invalid && documentsUrlCtrl?.touched" />
                   </div>
-                  <small class="text-muted">Upload ID proof or authenticity certificates (All formats accepted).</small>
-                  <div class="text-danger small mt-1" *ngIf="verificationDocCtrl?.invalid && verificationDocCtrl?.touched">
-                    Verification document is mandatory.
+                  <div class="invalid-feedback d-block"
+                       *ngIf="documentsUrlCtrl?.invalid && documentsUrlCtrl?.touched">
+                    <span *ngIf="documentsUrlCtrl?.errors?.['required']">Document URL is required.</span>
+                    <span *ngIf="documentsUrlCtrl?.errors?.['pattern']">Please enter a valid URL starting with https://</span>
                   </div>
+                  <small class="text-muted">
+                    Upload your ID proof or authenticity certificates to Google Drive and paste the shareable link here.
+                    <strong>This is mandatory</strong> — your product will be rejected without a valid document.
+                  </small>
                 </div>
 
-                <div class="row">
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label fw-semibold small">Start Date <span class="text-danger">*</span></label>
-                    <input type="datetime-local" class="form-control" formControlName="auctionStartDate" />
+                <div class="mb-3">
+                  <label class="form-label fw-semibold">Preferred Auction Date <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" formControlName="preferredDate" [min]="today"
+                         [class.is-invalid]="preferredDateCtrl?.invalid && preferredDateCtrl?.touched"
+                         (change)="onDateChange()" />
+                  <div class="invalid-feedback">Please select a preferred date.</div>
+                </div>
+
+                <div class="mb-3" *ngIf="preferredDateCtrl?.value">
+                  <label class="form-label fw-semibold">Preferred Time Slot <span class="text-danger">*</span></label>
+                  <div class="text-center py-2" *ngIf="slotsLoading">
+                    <span class="spinner-border spinner-border-sm text-primary me-2"></span>
+                    <span class="text-muted small">Loading slots...</span>
                   </div>
-                  <div class="col-md-6 mb-3">
-                    <label class="form-label fw-semibold small">End Date <span class="text-danger">*</span></label>
-                    <input type="datetime-local" class="form-control" formControlName="auctionEndDate" />
-                  </div>
+                  <select class="form-select" formControlName="preferredSlot"
+                          [class.is-invalid]="preferredSlotCtrl?.invalid && preferredSlotCtrl?.touched"
+                          *ngIf="!slotsLoading">
+                    <option [ngValue]="null" disabled>-- Select a slot --</option>
+                    <option *ngFor="let s of slots" [ngValue]="s.slot"
+                            [disabled]="s.availability === 'UNAVAILABLE'">
+                      {{ s.label }}
+                      <ng-container [ngSwitch]="s.availability">
+                        <ng-container *ngSwitchCase="'AVAILABLE'"> ✓ Available</ng-container>
+                        <ng-container *ngSwitchCase="'TENTATIVE'"> ⚠ Tentative</ng-container>
+                        <ng-container *ngSwitchCase="'UNAVAILABLE'"> ✗ Taken</ng-container>
+                      </ng-container>
+                    </option>
+                  </select>
+                  <div class="invalid-feedback">Please select a time slot.</div>
+                  <small class="text-muted">Your slot preference is honoured if available; otherwise the next free slot is assigned at review time.</small>
                 </div>
 
                 <div class="mb-4 p-3 border rounded bg-light">
@@ -119,18 +150,28 @@
               </div>
               <h5 class="fw-bold mb-1">{{ productNameCtrl?.value || 'Product Name' }}</h5>
               <p class="text-muted small mb-3 text-truncate-3">{{ descriptionCtrl?.value || 'Description will appear here.' }}</p>
-              
+
               <div class="border-top pt-3 mt-auto">
                 <div class="d-flex justify-content-between">
                   <span class="text-muted">Starting Price:</span>
                   <span class="fw-bold text-primary">₹{{ startingPriceCtrl?.value || 0 | number }}</span>
                 </div>
                 <div class="d-flex justify-content-between mt-1">
-                  <span class="text-muted">Document:</span>
-                  <span class="text-success small fw-bold" *ngIf="verificationDocCtrl?.value">
-                    <i class="bi bi-file-earmark-check"></i> Attached
+                  <span class="text-muted">Documents:</span>
+                  <span class="text-success small fw-bold" *ngIf="documentsUrlCtrl?.value">
+                    <i class="bi bi-file-earmark-check"></i> Linked
                   </span>
-                  <span class="text-danger small" *ngIf="!verificationDocCtrl?.value">Missing</span>
+                  <span class="text-danger small fw-bold" *ngIf="!documentsUrlCtrl?.value">
+                    <i class="bi bi-exclamation-triangle"></i> Required
+                  </span>
+                </div>
+                <div class="d-flex justify-content-between mt-1">
+                  <span class="text-muted">Preferred Date:</span>
+                  <span class="fw-semibold small">{{ preferredDateCtrl?.value || '—' }}</span>
+                </div>
+                <div class="d-flex justify-content-between mt-1" *ngIf="preferredSlotCtrl?.value">
+                  <span class="text-muted">Preferred Slot:</span>
+                  <span class="fw-semibold small text-primary">Slot {{ preferredSlotCtrl?.value }}</span>
                 </div>
               </div>
             </div>

@@ -1,14 +1,15 @@
 package com.cts.mfrp.au.service;
 
 import com.cts.mfrp.au.exception.WalletNoSufficientBalance;
-import com.cts.mfrp.au.exception.WalletNotFoundException;
 import com.cts.mfrp.au.model.Auction;
 import com.cts.mfrp.au.model.User;
 import com.cts.mfrp.au.model.Wallet;
 import com.cts.mfrp.au.model.Transaction;
+import com.cts.mfrp.au.repository.ProductRepository;
 import com.cts.mfrp.au.repository.WalletRepository;
 import com.cts.mfrp.au.repository.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -21,6 +22,7 @@ public class WalletService {
     @Autowired
     private TransactionRepository transactionRepo;
     @Autowired private AuctionService auctionService;
+    @Autowired private ProductRepository productRepository;
 
     public  WalletService(){}
 
@@ -29,16 +31,29 @@ public class WalletService {
         this.transactionRepo = transactionRepo;
     }
 
-    // AUC-23: View Balance
+    // AUC-23: View Balance — auto-creates wallet if missing (handles legacy accounts).
+    // Uses try/catch for the creation to handle the race condition where two concurrent
+    // requests (e.g. loadWallet + loadTransactions) both see no wallet and both try to insert.
     public Wallet getBalance(int userId) {
-        return walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        return walletRepo.findByUserId(userId).orElseGet(() -> {
+            try {
+                Wallet wallet = new Wallet();
+                wallet.setUserId(userId);
+                wallet.setAvailableBalance(0);
+                wallet.setFrozenBalance(0);
+                wallet.setLastUpdated(new Date());
+                return walletRepo.saveAndFlush(wallet);
+            } catch (DataIntegrityViolationException e) {
+                // Another concurrent request already created the wallet — just fetch it
+                return walletRepo.findByUserId(userId)
+                        .orElseThrow(() -> new RuntimeException("Wallet creation failed for userId: " + userId));
+            }
+        });
     }
 
     // AUC-24: Deposit Funds
     public Wallet depositFunds(int userId, float amount) {
-        Wallet wallet = walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        Wallet wallet = getBalance(userId);
 
         wallet.setAvailableBalance(wallet.getAvailableBalance() + amount);
         wallet.setLastUpdated(new Date());
@@ -57,11 +72,10 @@ public class WalletService {
 
     // AUC-25: Withdraw Funds
     public Wallet withdrawFunds(int userId, float amount) {
-        Wallet wallet = walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        Wallet wallet = getBalance(userId);
 
         if (wallet.getAvailableBalance() < amount) {
-            throw new WalletNotFoundException("Insufficient balance to withdraw");
+            throw new WalletNoSufficientBalance("Insufficient balance to withdraw");
         }
 
         wallet.setAvailableBalance(wallet.getAvailableBalance() - amount);
@@ -81,8 +95,7 @@ public class WalletService {
 
     // AUC-26: Hold Bid Amount
     public Wallet holdBidAmount(int userId, int auctionId, float bidAmount) {
-        Wallet wallet = walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        Wallet wallet = getBalance(userId);
 
         if (wallet.getAvailableBalance() < bidAmount) {
             throw new RuntimeException("Insufficient balance to place bid");
@@ -107,8 +120,7 @@ public class WalletService {
 
     // AUC-27: Refund Losing Bidder
     public Wallet refundBidder(int userId, int auctionId, float refundAmount) {
-        Wallet wallet = walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        Wallet wallet = getBalance(userId);
 
         if (wallet.getFrozenBalance() < refundAmount) {
             throw new WalletNoSufficientBalance("No sufficient frozen balance to refund");
@@ -133,8 +145,7 @@ public class WalletService {
 
     // AUC-28: Payout Winning Seller
     public Wallet payoutSeller(int sellerUserId, int auctionId, float payoutAmount) {
-        Wallet wallet = walletRepo.findByUserId(sellerUserId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + sellerUserId));
+        Wallet wallet = getBalance(sellerUserId);
 
         wallet.setAvailableBalance(wallet.getAvailableBalance() + payoutAmount);
         wallet.setLastUpdated(new Date());
@@ -154,39 +165,52 @@ public class WalletService {
 
     // AUC-29: View Transaction History
     public List<Transaction> getTransactionHistory(int userId) {
-        Wallet wallet = walletRepo.findByUserId(userId)
-                .orElseThrow(() -> new WalletNotFoundException("Wallet not found for userId: " + userId));
+        Wallet wallet = getBalance(userId);
         return transactionRepo.findByWalletId(wallet.getWalletId());
     }
 
-    public synchronized void freezeBal(int userId,float amount){
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
+    public synchronized void freezeBal(int userId, float amount){
+        Wallet wallet = getBalance(userId);
         wallet.setFrozenBalance(wallet.getFrozenBalance() + amount);
         wallet.setAvailableBalance(wallet.getAvailableBalance() - amount);
         walletRepo.save(wallet);
     }
-    public synchronized void unfreezeBal(int userId,float amount){
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
+
+    public synchronized void unfreezeBal(int userId, float amount){
+        Wallet wallet = getBalance(userId);
         wallet.setFrozenBalance(wallet.getFrozenBalance() - amount);
         wallet.setAvailableBalance(wallet.getAvailableBalance() + amount);
         walletRepo.save(wallet);
     }
     public void commit(int auctionId){
-        Auction a=auctionService.findById(auctionId);
-        User u=a.getHighestBidder();
-        int userId=u.getUserId();
-        Wallet wallet = walletRepo.findByUserId(userId).orElseThrow(() -> new WalletNotFoundException("Wallet not found for seller userId: " + userId));
-        float payoutAmount=wallet.getFrozenBalance();
-        wallet.setFrozenBalance(0);
-        Transaction tx = new Transaction();
-        tx.setWalletId(wallet.getWalletId());
-        tx.setAuctionId(auctionId);
-        tx.setType("payout");
-        tx.setAmount(payoutAmount);
-        tx.setStatus("SUCCESS");
-        tx.setCreatedAt(new Date());
-        transactionRepo.save(tx);
-        walletRepo.save(wallet);
+        Auction a = auctionService.findById(auctionId);
+        User winner = a.getHighestBidder();
+        if (winner == null) return; // no bids were placed
+
+        // Debit winner's frozen balance — only the winning bid, not their full frozen amount
+        Wallet winnerWallet = getBalance(winner.getUserId());
+        float payoutAmount = a.getCurrentBid();
+        winnerWallet.setFrozenBalance(winnerWallet.getFrozenBalance() - payoutAmount);
+        winnerWallet.setLastUpdated(new Date());
+
+        Transaction debitTx = new Transaction();
+        debitTx.setWalletId(winnerWallet.getWalletId());
+        debitTx.setAuctionId(auctionId);
+        debitTx.setType("bid_debit");
+        debitTx.setAmount(payoutAmount);
+        debitTx.setStatus("SUCCESS");
+        debitTx.setCreatedAt(new Date());
+        transactionRepo.save(debitTx);
+        walletRepo.save(winnerWallet);
+
+        // Credit seller's wallet and mark product as SOLD
+        if (a.getProduct() != null) {
+            if (a.getProduct().getSeller() != null) {
+                payoutSeller(a.getProduct().getSeller().getUserId(), auctionId, payoutAmount);
+            }
+            a.getProduct().setVerificationStatus("SOLD");
+            productRepository.save(a.getProduct());
+        }
     }
 
 }
