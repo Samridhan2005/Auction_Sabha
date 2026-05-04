@@ -11,6 +11,7 @@ public class BidTimerConfig {
 
     @Bean
     public ScheduledExecutorService scheduledExecutorService() {
+
         return Executors.newSingleThreadScheduledExecutor();
     }
 

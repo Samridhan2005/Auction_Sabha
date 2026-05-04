@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +30,6 @@ public class ProductService {
     @Autowired private UserRepository     userRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private AuctionRepository  auctionRepository;
-    @Autowired private EmailService       emailService;
 
     // ── Verifier: approve / reject ──────────────────────────────────────────
     public Product reviewProduct(int id, String status, String remarks) {
@@ -40,8 +38,6 @@ public class ProductService {
         product.setVerificationStatus(status);
         product.setAdminRemarks(remarks);
         Product saved = productRepository.save(product);
-
-        String slotLabel = null;
 
         if ("APPROVED".equalsIgnoreCase(status)) {
             // Find & assign auction slot — honour seller's preferred slot if available
@@ -55,24 +51,7 @@ public class ProductService {
                 auction.setFeatured(true); // now visible in admin dashboard
                 auctionRepository.save(auction);
             });
-
-            // Get slot label for email
-            slotLabel = auctionRepository.findByProduct_ProductId(product.getProductId())
-                    .map(a -> a.getConfirmedStartTime() != null
-                            ? a.getConfirmedStartTime().format(
-                                DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")) : null)
-                    .orElse(null);
         }
-
-        // Email seller
-        emailService.sendProductStatusEmail(
-                product.getSeller().getEmail(),
-                product.getSeller().getName(),
-                product.getProductName(),
-                status,
-                remarks,
-                slotLabel
-        );
 
         return saved;
     }

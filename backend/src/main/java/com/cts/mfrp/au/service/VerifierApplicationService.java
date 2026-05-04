@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -31,9 +32,6 @@ public class VerifierApplicationService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private EmailService emailService;
 
     private static final String CHAR_POOL = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$!";
 
@@ -102,9 +100,7 @@ public class VerifierApplicationService {
         app.setAdminRemarks(remarks);
         VerifierApplication saved = applicationRepository.save(app);
 
-        boolean emailSent = emailService.sendVerifierCredentialsEmail(app.getEmail(), app.getName(), tempPassword);
-
-        return new VerifierApprovalResponse(saved, tempPassword, emailSent);
+        return new VerifierApprovalResponse(saved, tempPassword, false);
     }
 
     public VerifierApplication rejectApplication(Long id, String remarks) {
@@ -117,11 +113,7 @@ public class VerifierApplicationService {
 
         app.setStatus("REJECTED");
         app.setAdminRemarks(remarks);
-        VerifierApplication saved = applicationRepository.save(app);
-
-        emailService.sendVerifierRejectionEmail(app.getEmail(), app.getName(), remarks);
-
-        return saved;
+        return applicationRepository.save(app);
     }
 
     private String generatePassword(int length) {
