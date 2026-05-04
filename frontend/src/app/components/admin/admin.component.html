@@ -586,10 +586,6 @@
                   <div class="text-muted" style="font-size:0.7rem;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
                     {{ p.description }}
                   </div>
-                  <span class="ai-verdict-badge" *ngIf="p.aiVerdict"
-                        [ngClass]="{'ai-approve': p.aiVerdict === 'APPROVE', 'ai-reject': p.aiVerdict === 'REJECT', 'ai-review': p.aiVerdict === 'MANUAL_REVIEW'}">
-                    <i class="bi bi-robot me-1"></i>AI: {{ p.aiVerdict }}
-                  </span>
                 </td>
                 <td class="small">{{ p.sellerName }}</td>
                 <td><span class="cat-badge">{{ p.categoryName }}</span></td>

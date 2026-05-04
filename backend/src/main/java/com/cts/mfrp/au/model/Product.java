@@ -34,17 +34,6 @@ public class Product {
 
     private int preferredSlot; // 1-10
 
-    @Column(length = 30)
-    private String aiVerdict;
-
-    @Column(length = 512)
-    private String aiVerdictSummary;
-
-    public String getAiVerdict() { return aiVerdict; }
-    public void setAiVerdict(String aiVerdict) { this.aiVerdict = aiVerdict; }
-    public String getAiVerdictSummary() { return aiVerdictSummary; }
-    public void setAiVerdictSummary(String aiVerdictSummary) { this.aiVerdictSummary = aiVerdictSummary; }
-
     // Getter and Setter for Starting Price (Fixed the error you see now)
     public float getStartingPrice() {
         return startingPrice;

@@ -98,13 +98,6 @@
                        class="btn btn-sm btn-outline-primary">
                       <i class="bi bi-file-earmark-text me-1"></i>View Documents
                     </a>
-                    <button class="btn btn-sm btn-outline-dark"
-                            (click)="checkDocumentWithAi(product)"
-                            [disabled]="aiCheckLoading[product.productId]">
-                      <span *ngIf="aiCheckLoading[product.productId]" class="spinner-border spinner-border-sm me-1"></span>
-                      <i *ngIf="!aiCheckLoading[product.productId]" class="bi bi-robot me-1"></i>
-                      {{ aiCheckLoading[product.productId] ? 'Analysing...' : 'Check Authenticity' }}
-                    </button>
                   </ng-container>
 
                   <ng-template #noDoc>
@@ -112,59 +105,6 @@
                       <i class="bi bi-exclamation-triangle me-1"></i>No document uploaded
                     </span>
                   </ng-template>
-                </div>
-
-                <!-- AI Verdict Card -->
-                <div *ngIf="aiVerdicts[product.productId] as v"
-                     class="rounded border p-3 mb-3 small"
-                     [ngClass]="{
-                       'border-success bg-success bg-opacity-10': v.verdict === 'LIKELY_AUTHENTIC',
-                       'border-warning bg-warning bg-opacity-10': v.verdict === 'NEEDS_REVIEW',
-                       'border-danger bg-danger bg-opacity-10':   v.verdict === 'SUSPICIOUS'
-                     }">
-
-                  <!-- Verdict header row -->
-                  <div class="d-flex align-items-center gap-2 mb-2 flex-wrap">
-                    <i class="bi fs-5"
-                       [ngClass]="{
-                         'bi-shield-check text-success':       v.verdict === 'LIKELY_AUTHENTIC',
-                         'bi-shield-exclamation text-warning': v.verdict === 'NEEDS_REVIEW',
-                         'bi-shield-x text-danger':            v.verdict === 'SUSPICIOUS'
-                       }"></i>
-                    <span class="fw-semibold">AI Document Assessment:</span>
-                    <span class="badge"
-                          [ngClass]="{
-                            'bg-success':          v.verdict === 'LIKELY_AUTHENTIC',
-                            'bg-warning text-dark': v.verdict === 'NEEDS_REVIEW',
-                            'bg-danger':            v.verdict === 'SUSPICIOUS'
-                          }">
-                      {{ verdictLabel(v.verdict) }}
-                    </span>
-                    <span class="text-muted ms-auto">{{ v.confidence }}% confidence</span>
-                  </div>
-
-                  <!-- Confidence bar -->
-                  <div class="progress mb-2" style="height: 5px;">
-                    <div class="progress-bar"
-                         [ngClass]="{
-                           'bg-success': v.verdict === 'LIKELY_AUTHENTIC',
-                           'bg-warning':  v.verdict === 'NEEDS_REVIEW',
-                           'bg-danger':   v.verdict === 'SUSPICIOUS'
-                         }"
-                         [style.width.%]="v.confidence"></div>
-                  </div>
-
-                  <p class="mb-1 fw-semibold">{{ v.documentType }}</p>
-                  <p class="mb-2 text-muted">{{ v.summary }}</p>
-
-                  <ul class="mb-2 ps-3" *ngIf="v.concerns && v.concerns.length > 0">
-                    <li *ngFor="let c of v.concerns" class="text-danger">{{ c }}</li>
-                  </ul>
-
-                  <div class="d-flex align-items-start gap-2" *ngIf="v.suggestions">
-                    <i class="bi bi-lightbulb text-warning flex-shrink-0 mt-1"></i>
-                    <span class="text-muted">{{ v.suggestions }}</span>
-                  </div>
                 </div>
 
                 <!-- Review Actions -->

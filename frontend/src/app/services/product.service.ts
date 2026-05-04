@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { AiVerdict, Category, Product, ProductSubmitRequest, SellerProductSummary } from '../models/product.model';
+import { Category, Product, ProductSubmitRequest, SellerProductSummary } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -40,10 +40,6 @@ export class ProductService {
 
   submitProduct(sellerId: number, request: ProductSubmitRequest): Observable<Product> {
     return this.http.post<Product>(`${this.baseUrl}/submit?sellerId=${sellerId}`, request);
-  }
-
-  verifyDocument(request: { documentUrl: string; productName: string; description: string }): Observable<AiVerdict> {
-    return this.http.post<AiVerdict>(`${environment.apiBaseUrl}/api/ai/verify-document`, request);
   }
 
   getMyProducts(sellerId: number): Observable<SellerProductSummary[]> {

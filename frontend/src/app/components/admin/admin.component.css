@@ -442,21 +442,6 @@
 .verif-approved { background: rgba(16,185,129,0.12); color:#065f46; border:1px solid rgba(16,185,129,0.25); }
 .verif-rejected { background: rgba(239,68,68,0.1);  color:#991b1b; border:1px solid rgba(239,68,68,0.2); }
 
-/* ---------- AI Verdict Badge ---------- */
-.ai-verdict-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.65rem;
-  font-weight: 700;
-  margin-top: 3px;
-}
-
-.ai-approve { background: rgba(16,185,129,0.1); color:#065f46; border:1px solid rgba(16,185,129,0.2); }
-.ai-reject  { background: rgba(239,68,68,0.1);  color:#991b1b; border:1px solid rgba(239,68,68,0.2); }
-.ai-review  { background: rgba(245,158,11,0.1); color:#92400e; border:1px solid rgba(245,158,11,0.2); }
-
 /* ---------- Category Badge ---------- */
 .cat-badge {
   display: inline-flex;

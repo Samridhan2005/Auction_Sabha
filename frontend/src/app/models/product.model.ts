@@ -1,17 +1,6 @@
 import { User } from './user.model';
 
 export type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type AiVerdictStatus = 'LIKELY_AUTHENTIC' | 'NEEDS_REVIEW' | 'SUSPICIOUS' | 'NOT_CONFIGURED';
-
-export interface AiVerdict {
-  verdict: AiVerdictStatus;
-  documentType: string;
-  confidence: number;
-  summary: string;
-  concerns: string[];
-  suggestions: string;
-}
-
 export interface Category {
   categoryId: number;
   categoryName: string;
@@ -30,8 +19,6 @@ export interface Product {
   adminRemarks: string | null;
   submittedAt: string;
   preferredDate: string | null;
-  aiVerdict: string | null;
-  aiVerdictSummary: string | null;
 }
 
 export type AuctionStatus = 'CREATED' | 'LIVE' | 'ENDED';

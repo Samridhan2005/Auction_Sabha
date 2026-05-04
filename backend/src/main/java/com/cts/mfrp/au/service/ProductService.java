@@ -184,7 +184,6 @@ public class ProductService {
             row.put("startingPrice",      p.getStartingPrice());
             row.put("verificationStatus", p.getVerificationStatus());
             row.put("adminRemarks",       p.getAdminRemarks());
-            row.put("aiVerdict",          p.getAiVerdict());
             row.put("submittedAt",        p.getSubmittedAt()   != null ? p.getSubmittedAt().toString()   : null);
             row.put("preferredDate",      p.getPreferredDate() != null ? p.getPreferredDate().toString() : null);
             row.put("preferredSlot",      p.getPreferredSlot());

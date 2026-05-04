@@ -11,7 +11,6 @@ export interface AdminProduct {
   startingPrice: number;
   verificationStatus: string;
   adminRemarks: string | null;
-  aiVerdict: string | null;
   submittedAt: string | null;
   preferredDate: string | null;
   preferredSlot: number;
