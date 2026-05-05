@@ -47,7 +47,7 @@ public class SecurityConfig {
         // Allowed Origins: Localhost for dev, and your new Render URL
         config.setAllowedOrigins(List.of(
                 "http://localhost:4200",
-                "https://auction-sabha-api.onrender.com"
+                "https://auction-sabha-frontend.onrender.com"
         ));
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
