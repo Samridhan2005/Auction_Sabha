@@ -10,11 +10,9 @@ import java.util.Date;
 @Component
 public class JwtUtil {
 
-    // Key should be at least 32 characters
     private final String SECRET_STRING = "mysecretrandomkeyissamridhanselvan@gmail.com";
     private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
-    // String-ah proper signing key-aa maathuradhu
     private Key getSigningKey() {
         byte[] keyBytes = SECRET_STRING.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
