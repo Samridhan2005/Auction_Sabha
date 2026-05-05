@@ -1,5 +1,5 @@
-export const environment = {
-  production: false,
-  apiBaseUrl: 'http://localhost:9090',
-  wsUrl: 'ws://localhost:9090/ws'
+export const environment = {   
+  production: false,   
+  apiBaseUrl: 'https://auction-sabha-api.onrender.com',   
+  wsUrl: 'wss://auction-sabha-api.onrender.com/ws'
 };
