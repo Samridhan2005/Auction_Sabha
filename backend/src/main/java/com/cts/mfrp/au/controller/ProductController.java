@@ -1,9 +1,12 @@
 package com.cts.mfrp.au.controller;
 
+import com.cts.mfrp.au.dto.AiRiskResponse;
 import com.cts.mfrp.au.dto.ProductSubmitRequest;
 import com.cts.mfrp.au.model.Category;
 import com.cts.mfrp.au.model.Product;
 import com.cts.mfrp.au.repository.CategoryRepository;
+import com.cts.mfrp.au.repository.ProductRepository;
+import com.cts.mfrp.au.service.AiRiskService;
 import com.cts.mfrp.au.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,12 @@ public class ProductController {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    @Autowired
+    private AiRiskService aiRiskService;
 
     @GetMapping("/categories")
     public List<Category> getCategories() {
@@ -80,6 +89,18 @@ public class ProductController {
 
         Product savedProduct = productService.submitProduct(sellerId, request.getCategoryId(), request);
         return ResponseEntity.ok(savedProduct);
+    }
+
+    // 7. AI Risk Check (on-demand, no caching)
+    @PostMapping("/{id}/ai-check")
+    public ResponseEntity<AiRiskResponse> aiCheck(@PathVariable int id) {
+        Product product = productRepository.findById(id).orElse(null);
+        if (product == null) {
+            return ResponseEntity.status(404)
+                    .body(AiRiskResponse.withError("Product not found."));
+        }
+        AiRiskResponse result = aiRiskService.analyseProduct(product);
+        return ResponseEntity.ok(result);
     }
 
 }

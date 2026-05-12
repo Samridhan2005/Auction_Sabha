@@ -64,8 +64,26 @@ export class ProductSubmitComponent implements OnInit {
     if (!dateVal) return;
     this.slotsLoading = true;
     this.auctionService.getAvailableSlots(dateVal).subscribe({
-      next: (s) => { this.slots = s; this.slotsLoading = false; },
+      next: (s) => {
+        this.slots = this.markPastSlotsUnavailable(s, dateVal);
+        this.slotsLoading = false;
+      },
       error: () => { this.slotsLoading = false; }
+    });
+  }
+
+  // Backend may report slots as AVAILABLE if its clock is in a different timezone
+  // than the user. Use the user's local clock as the source of truth for "past".
+  private markPastSlotsUnavailable(slots: SlotInfo[], selectedDate: string): SlotInfo[] {
+    const todayIso = new Date().toISOString().split('T')[0];
+    if (selectedDate !== todayIso) return slots;
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+    return slots.map(s => {
+      const slotEndMinutes = (9 + s.slot) * 60;
+      return slotEndMinutes <= currentMinutes
+        ? { ...s, availability: 'UNAVAILABLE' as const }
+        : s;
     });
   }
 
@@ -102,8 +120,4 @@ export class ProductSubmitComponent implements OnInit {
     });
   }
 
-  get imagePreviewUrl(): string {
-    const val = this.imageUrlCtrl?.value;
-    return val && /^https?:\/\/.+/.test(val) ? val : '';
-  }
 }

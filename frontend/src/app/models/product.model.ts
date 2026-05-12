@@ -50,3 +50,10 @@ export interface ProductSubmitRequest {
   categoryId: number;
   preferredDate: string;
 }
+
+export interface AiRiskResult {
+  riskScore: number;
+  flags: string[];
+  summary: string;
+  error?: string;
+}

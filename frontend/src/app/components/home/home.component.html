@@ -293,6 +293,8 @@
 
             <!-- Watchlist heart button -->
             <button class="watchlist-heart-btn position-absolute"
+                    [attr.aria-label]="watchlist.isWatched(auction.auctionId) ? 'Remove from watchlist' : 'Add to watchlist'"
+                    [title]="watchlist.isWatched(auction.auctionId) ? 'Remove from watchlist' : 'Add to watchlist'"
                     (click)="$event.stopPropagation(); watchlist.toggle(auction.auctionId)">
               <i class="bi"
                  [ngClass]="watchlist.isWatched(auction.auctionId) ? 'bi-heart-fill watched' : 'bi-heart'"
@@ -363,7 +365,14 @@
                 </p>
               </div>
 
-              <button *ngIf="role === 'BUYER'"
+              <!-- Seller viewing their own product: just a label, no bid action -->
+              <div *ngIf="role === 'SELLER' && auction.sellerId === currentUserId"
+                   class="text-center text-muted x-small py-2 border-top">
+                <i class="bi bi-person-badge me-1"></i>Your Listing
+              </div>
+
+              <!-- Buyer always, or Seller on someone else's product: the action button -->
+              <button *ngIf="role === 'BUYER' || (role === 'SELLER' && auction.sellerId !== currentUserId)"
                       class="btn w-100 fw-bold action-btn"
                       [ngClass]="{
                         'btn-live': auction.status === 'LIVE',
@@ -371,17 +380,18 @@
                         'btn-ended': auction.status === 'ENDED'
                       }"
                       (click)="goToAuction(auction)"
-                      [disabled]="auction.status === 'ENDED'">
+                      [disabled]="auction.status !== 'LIVE'">
                 <i class="bi me-2"
                    [ngClass]="{
                      'bi-lightning-fill': auction.status === 'LIVE',
-                     'bi-eye-fill': auction.status === 'CREATED',
+                     'bi-hourglass-split': auction.status === 'CREATED',
                      'bi-slash-circle': auction.status === 'ENDED'
                    }"></i>
-                {{ auction.status === 'LIVE' ? 'Enter Auction' : auction.status === 'CREATED' ? 'Remind Me' : 'Closed' }}
+                {{ auction.status === 'LIVE' ? 'Participate Now' : auction.status === 'CREATED' ? 'Yet to Start' : 'Closed' }}
               </button>
 
-              <div *ngIf="role !== 'BUYER'" class="text-center text-muted x-small py-2 border-top">
+              <!-- Admin / other roles -->
+              <div *ngIf="role !== 'BUYER' && role !== 'SELLER'" class="text-center text-muted x-small py-2 border-top">
                 <i class="bi bi-shield-lock me-1"></i>Admin Access Only
               </div>
             </div>

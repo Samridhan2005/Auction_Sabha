@@ -181,6 +181,7 @@ public class AuctionService {
                 String img = p.getImageUrl();
                 map.put("imageUrl", img != null && !img.isBlank() ? img : null);
                 map.put("startingPrice", p.getStartingPrice());
+                map.put("sellerId", p.getSeller() != null ? p.getSeller().getUserId() : null);
                 map.put("sellerName", p.getSeller() != null ? p.getSeller().getName() : "Unknown");
                 map.put("categoryId", p.getCategory() != null ? p.getCategory().getCategoryId() : null);
                 map.put("categoryName", p.getCategory() != null ? p.getCategory().getCategoryName() : "Uncategorized");
