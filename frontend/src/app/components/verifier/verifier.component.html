@@ -105,6 +105,46 @@
                       <i class="bi bi-exclamation-triangle me-1"></i>No document uploaded
                     </span>
                   </ng-template>
+
+                  <button class="btn btn-sm btn-outline-dark ms-auto"
+                          (click)="runAiCheck(product.productId)"
+                          [disabled]="aiLoading[product.productId]">
+                    <span *ngIf="aiLoading[product.productId]" class="spinner-border spinner-border-sm me-1"></span>
+                    <i *ngIf="!aiLoading[product.productId]" class="bi bi-robot me-1"></i>
+                    {{ aiLoading[product.productId] ? 'Analysing...' : 'Run AI Check' }}
+                  </button>
+                </div>
+
+                <!-- AI Risk Assessment -->
+                <div *ngIf="aiResults[product.productId] && !aiResults[product.productId].error"
+                     class="card border-0 p-3 mb-3"
+                     [ngStyle]="{
+                       'background-color': riskBand(aiResults[product.productId].riskScore) === 'low' ? '#e8f5e9'
+                                         : riskBand(aiResults[product.productId].riskScore) === 'medium' ? '#fff8e1'
+                                         : '#ffebee'
+                     }">
+                  <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-robot fs-5"></i>
+                    <strong>AI Risk Assessment</strong>
+                    <span class="badge ms-2"
+                          [ngClass]="{
+                            'bg-success': riskBand(aiResults[product.productId].riskScore) === 'low',
+                            'bg-warning text-dark': riskBand(aiResults[product.productId].riskScore) === 'medium',
+                            'bg-danger': riskBand(aiResults[product.productId].riskScore) === 'high'
+                          }">
+                      {{ riskBand(aiResults[product.productId].riskScore) === 'low' ? 'Low Risk'
+                       : riskBand(aiResults[product.productId].riskScore) === 'medium' ? 'Review Carefully'
+                       : 'High Risk' }}
+                      — Score {{ aiResults[product.productId].riskScore }}/100
+                    </span>
+                  </div>
+                  <p class="mb-2 small">{{ aiResults[product.productId].summary }}</p>
+                  <div *ngIf="aiResults[product.productId].flags?.length">
+                    <strong class="small">Flags:</strong>
+                    <ul class="small mb-0">
+                      <li *ngFor="let flag of aiResults[product.productId].flags">{{ flag }}</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <!-- Review Actions -->

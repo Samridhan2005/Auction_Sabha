@@ -278,11 +278,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   goToAuction(auction: AuctionCard): void {
-    if (this.authService.getRole() === 'BUYER') {
-      this.recentlyViewed.add(auction);
-      this.recentlyViewedList = this.recentlyViewed.getAll();
-      void this.router.navigate(['/auction', auction.auctionId], { state: { auction } });
-    }
+    if (auction.status !== 'LIVE') return;
+    const role = this.authService.getRole();
+    const userId = this.authService.getUserId();
+    const isOwnProduct = role === 'SELLER' && auction.sellerId === userId;
+    if (isOwnProduct) return;
+    if (role !== 'BUYER' && role !== 'SELLER') return;
+    this.recentlyViewed.add(auction);
+    this.recentlyViewedList = this.recentlyViewed.getAll();
+    void this.router.navigate(['/auction', auction.auctionId], { state: { auction } });
   }
 
   scrollToAuctions(): void {
@@ -290,6 +294,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   get role(): string | null { return this.authService.getRole(); }
+  get currentUserId(): number | null { return this.authService.getUserId(); }
   get liveCount(): number   { return this.auctions.filter(a => a.status === 'LIVE').length; }
 
   formatCurrency(amount: number): string {

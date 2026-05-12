@@ -34,6 +34,7 @@ export interface AuctionCard {
   description: string;
   imageUrl: string | null;
   startingPrice: number;
+  sellerId: number | null;
   sellerName: string;
   categoryId: number;
   categoryName: string;

@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Category, Product, ProductSubmitRequest, SellerProductSummary } from '../models/product.model';
+import { AiRiskResult, Category, Product, ProductSubmitRequest, SellerProductSummary } from '../models/product.model';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
@@ -44,5 +44,9 @@ export class ProductService {
 
   getMyProducts(sellerId: number): Observable<SellerProductSummary[]> {
     return this.http.get<SellerProductSummary[]>(`${this.baseUrl}/my-products?sellerId=${sellerId}`);
+  }
+
+  runAiCheck(productId: number): Observable<AiRiskResult> {
+    return this.http.post<AiRiskResult>(`${this.baseUrl}/${productId}/ai-check`, null);
   }
 }

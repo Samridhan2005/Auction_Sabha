@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ProductService } from '../../services/product.service';
-import { Product } from '../../models/product.model';
+import { AiRiskResult, Product } from '../../models/product.model';
 
 interface Toast { type: 'success' | 'danger' | 'info'; text: string; id: number; }
 
@@ -15,6 +15,8 @@ export class VerifierComponent implements OnInit {
   errorMessage = '';
   productActionLoading: { [key: number]: boolean } = {};
   productRemarks: { [key: number]: string } = {};
+  aiResults: { [key: number]: AiRiskResult } = {};
+  aiLoading: { [key: number]: boolean } = {};
   toasts: Toast[] = [];
   private toastCounter = 0;
 
@@ -40,7 +42,7 @@ export class VerifierComponent implements OnInit {
     this.productService.reviewProduct(productId, 'APPROVED', remarks).subscribe({
       next: () => {
         this.productActionLoading[productId] = false;
-        this.showToast('success', 'Product approved. Seller has been notified.');
+        this.showToast('success', 'Product approved. Seller will see the update on their dashboard.');
         this.products = this.products.filter(p => p.productId !== productId);
       },
       error: () => { this.productActionLoading[productId] = false; this.showToast('danger', 'Failed to approve product.'); }
@@ -54,11 +56,35 @@ export class VerifierComponent implements OnInit {
     this.productService.reviewProduct(productId, 'REJECTED', remarks).subscribe({
       next: () => {
         this.productActionLoading[productId] = false;
-        this.showToast('success', 'Product rejected. Seller has been notified.');
+        this.showToast('success', 'Product rejected. Seller will see the update and remarks on their dashboard.');
         this.products = this.products.filter(p => p.productId !== productId);
       },
       error: () => { this.productActionLoading[productId] = false; this.showToast('danger', 'Failed to reject product.'); }
     });
+  }
+
+  runAiCheck(productId: number): void {
+    this.aiLoading[productId] = true;
+    delete this.aiResults[productId];
+    this.productService.runAiCheck(productId).subscribe({
+      next: (result) => {
+        this.aiLoading[productId] = false;
+        this.aiResults[productId] = result;
+        if (result.error) {
+          this.showToast('danger', result.error);
+        }
+      },
+      error: () => {
+        this.aiLoading[productId] = false;
+        this.showToast('danger', 'AI check request failed.');
+      }
+    });
+  }
+
+  riskBand(score: number): 'low' | 'medium' | 'high' {
+    if (score <= 30) return 'low';
+    if (score <= 65) return 'medium';
+    return 'high';
   }
 
   showToast(type: Toast['type'], text: string): void {
