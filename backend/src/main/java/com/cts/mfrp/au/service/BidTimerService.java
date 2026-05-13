@@ -55,6 +55,7 @@ public class BidTimerService {
         try {
             auctionService.stopAuction(auctionId);
             walletService.commit(auctionId);
+            broadcastWebSocketHandler.clearAuctionState();
             broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STOPPED", auctionId);
         } catch (Exception e) {
             System.out.println("Stop auction error: " + e.getMessage());

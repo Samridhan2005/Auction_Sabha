@@ -30,6 +30,8 @@ public class AuctionSchedulerService {
         List<Auction> due = auctionService.findDueToStart();
         for (Auction a : due) {
             try {
+                double price = auctionService.getDefaultPrice(a.getAuctionId());
+                broadcastWebSocketHandler.initForAuction((float) price);
                 auctionService.startAuction(a.getAuctionId());
                 broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STARTED", a.getAuctionId());
                 System.out.println("Auto-started auction #" + a.getAuctionId());

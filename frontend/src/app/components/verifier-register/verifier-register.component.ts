@@ -74,7 +74,7 @@ export class VerifierRegisterComponent implements OnInit {
     this.service.submit(this.form.value).subscribe({
       next: () => {
         this.isLoading = false;
-        this.successMessage = 'Your application has been submitted! The admin will review it and send you login credentials via email if approved.';
+        this.successMessage = 'Your application has been submitted. The admin will review it shortly. If approved, your verifier account will be created and the admin will share your login credentials with you.';
         this.form.reset();
       },
       error: (err: { status: number; error?: string }) => {

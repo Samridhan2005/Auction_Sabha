@@ -24,8 +24,7 @@ public class AdminController {
     @PostMapping("/auction/{auctionId}/start")
     public ResponseEntity<String> startAuction(@PathVariable int auctionId) throws Exception {
         double price = auctionService.getDefaultPrice(auctionId);
-        broadcastWebSocketHandler.setCurBid((float) price);
-        broadcastWebSocketHandler.setPrevUserId(0);
+        broadcastWebSocketHandler.initForAuction((float) price);
         auctionService.startAuction(auctionId);
         broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STARTED", auctionId);
         return ResponseEntity.ok("Auction started");
@@ -35,6 +34,7 @@ public class AdminController {
     public ResponseEntity<String> stopAuction(@PathVariable int auctionId) throws Exception {
         auctionService.stopAuction(auctionId);
         walletService.commit(auctionId);
+        broadcastWebSocketHandler.clearAuctionState();
         broadcastWebSocketHandler.broadcastSystemEvent("AUCTION_STOPPED", auctionId);
         return ResponseEntity.ok("Auction stopped");
     }

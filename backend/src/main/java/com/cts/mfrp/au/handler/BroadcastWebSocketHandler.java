@@ -54,8 +54,20 @@ public class BroadcastWebSocketHandler extends TextWebSocketHandler {
         System.out.println("Connected: " + session.getId());
     }
 
+    /** Reset auction state when a new auction starts. */
+    public synchronized void initForAuction(float startingPrice) {
+        this.curBid = startingPrice;
+        this.prevUserId = 0;
+    }
+
+    /** Clear auction state after an auction ends so the next auction starts clean. */
+    public synchronized void clearAuctionState() {
+        this.curBid = 0;
+        this.prevUserId = 0;
+    }
+
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+    protected synchronized void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
         try{
             BidExt bid = objectMapper.readValue(message.getPayload(), BidExt.class);
             Auction auction = auctionService.findById(bid.getAuctionId());

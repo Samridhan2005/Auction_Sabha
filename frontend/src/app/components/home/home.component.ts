@@ -221,8 +221,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   formatSlotDate(isoStr: string | null): string {
     if (!isoStr) return '';
     const d = new Date(isoStr);
-    const today = new Date();
-    const diff = Math.round((d.getTime() - today.getTime()) / 86_400_000);
+    const now = new Date();
+    // Compare CALENDAR days, not raw 24-hour gaps — otherwise "tomorrow 9 AM"
+    // viewed at 10 PM tonight rounds to 0 days diff and shows as "Today".
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const startOfSlotDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    const diff = Math.round((startOfSlotDay - startOfToday) / 86_400_000);
     if (diff === 0) return `Today at ${this.formatSlotTime(isoStr)}`;
     if (diff === 1) return `Tomorrow at ${this.formatSlotTime(isoStr)}`;
     return d.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })
