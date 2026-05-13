@@ -789,6 +789,8 @@
             </div>
             <div class="card-body">
               <div class="row g-3 mb-3 small">
+                <div class="col-md-6 col-12"><span class="text-muted"><i class="bi bi-envelope me-1"></i>Email</span><br/><strong class="text-break">{{ app.email }}</strong></div>
+                <div class="col-md-6 col-12"><span class="text-muted"><i class="bi bi-telephone me-1"></i>Phone</span><br/><strong>{{ app.phone }}</strong></div>
                 <div class="col-md-3 col-6"><span class="text-muted">Age</span><br/><strong>{{ app.age }} years</strong></div>
                 <div class="col-md-3 col-6"><span class="text-muted">Qualification</span><br/><strong>{{ app.qualification }}</strong></div>
                 <div class="col-md-3 col-6"><span class="text-muted">Experience</span><br/><strong>{{ app.experienceYears }} yr(s)</strong></div>
@@ -815,7 +817,7 @@
                   <button class="btn btn-success flex-fill" (click)="approveApplication(app.applicationId)"
                           [disabled]="approveLoading[app.applicationId] || rejectLoading[app.applicationId]">
                     <span *ngIf="approveLoading[app.applicationId]" class="spinner-border spinner-border-sm me-1"></span>
-                    <i *ngIf="!approveLoading[app.applicationId]" class="bi bi-check-lg me-1"></i>Approve &amp; Send Credentials
+                    <i *ngIf="!approveLoading[app.applicationId]" class="bi bi-check-lg me-1"></i>Approve &amp; View Credentials
                   </button>
                   <button class="btn btn-danger flex-fill" (click)="rejectApplication(app.applicationId)"
                           [disabled]="rejectLoading[app.applicationId] || approveLoading[app.applicationId]">
